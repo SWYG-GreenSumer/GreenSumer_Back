@@ -9,19 +9,37 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/greensumer
-    username: artist
-    password: thisisTESTpw!#%&
-    driver-class-name: com.mysql.cj.jdbc.Driver # TODO - Need Encryption
+    url: ${DB_URL}
+    username: sa
+    password:
+
   jpa:
     open-in-view: false
-    defer-datasource-initialization: true
-    hibernate.ddl-auto: create
+#    defer-datasource-initialization: true
+    hibernate.ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate.format_sql: true
       hibernate.default_batch_fetch_size: 100
+
+  mail:
+    host: ${MAIL_HOST}
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp:
+        auth: true
+        starttls.enable: true
+
   sql.init.mode: always
   data.rest:
     base-path: /api
     detection-strategy: annotated
+  h2.console.enabled: true
+
+jwt:
+  secret-key: ${JWT_KEY}
+  token.expired-time-ms: ${JWT_EXPIRED_TIME_MS}           # 30 days
+
+spring.redis.url: ${REDIS_URL}
