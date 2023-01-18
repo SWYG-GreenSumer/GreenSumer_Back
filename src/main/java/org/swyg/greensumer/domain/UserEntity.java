@@ -9,19 +9,20 @@ import org.swyg.greensumer.domain.constant.UserRole;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Objects;
 
 @Getter
 @Entity
-@Table(name = "\"user\"", indexes = {
+@Table(name = "user", indexes = {
         @Index(name = "username_idx", columnList = "username", unique = true),
         @Index(name = "email_idx", columnList = "email", unique = true),
         @Index(name = "nickname_idx", columnList = "nickname", unique = true)
 })
-@SQLDelete(sql = "UPDATE \"user\" SET deleted_at = NOW() where id=?")
+@SQLDelete(sql = "UPDATE user SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
 public class UserEntity {
 
-    @Id
+    @Setter @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
@@ -30,9 +31,7 @@ public class UserEntity {
     @Setter @Column(nullable = false, length = 100) private String email;
     @Setter @Column(nullable = false, length = 50) private String nickname;
 
-    @Setter private String address;
-    @Setter private String lat;
-    @Setter private String lng;
+    @Setter @OneToOne @JoinColumn(name = "address_id") AddressEntity addressEntity;
 
     @Setter @Column(name = "role")
     @Enumerated(EnumType.STRING)
@@ -54,24 +53,29 @@ public class UserEntity {
     void updatedAt() { this.updatedAt = Timestamp.from(Instant.now());}
 
     public static UserEntity of(String username, String password, String nickname, String email){
-        return UserEntity.of(username, password, nickname, email,null, null, null);
+        return UserEntity.of(username, password, nickname, email, null);
     }
 
-    public static UserEntity of(String username, String password, String nickname, String email, String address, String lat, String lng){
+    public static UserEntity of(String username, String password, String nickname, String email, AddressEntity address){
         UserEntity user = new UserEntity();
         user.setUsername(username);
         user.setPassword(password);
         user.setNickname(nickname);
         user.setEmail(email);
-
-        if(address == null || address.isEmpty() || address.isBlank()){
-            user.setRole(UserRole.USER);
-        }else{
-            user.setAddress(address);
-            user.setLat(lat);
-            user.setLng(lng);
-            user.setRole(UserRole.SELLER);
-        }
+        user.setAddressEntity(address);
+        user.setRole(address == null ? UserRole.USER : UserRole.SELLER);
         return user;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserEntity that)) return false;
+        return this.getId() != null && this.getId().equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getId());
     }
 }

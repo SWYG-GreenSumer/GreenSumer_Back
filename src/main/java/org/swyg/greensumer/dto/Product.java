@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import org.swyg.greensumer.domain.ProductEntity;
 
 import java.sql.Timestamp;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -16,7 +18,7 @@ public class Product {
     private int price;
     private int stock;
     private String description;
-    private String image;
+    private Set<Image> images;
     private Timestamp registeredAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
@@ -28,7 +30,9 @@ public class Product {
                 entity.getPrice(),
                 entity.getStock(),
                 entity.getDescription(),
-                entity.getImage(),
+                entity.getImages().stream()
+                        .map(Image::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
                 entity.getRegisteredAt(),
                 entity.getUpdatedAt(),
                 entity.getDeletedAt()

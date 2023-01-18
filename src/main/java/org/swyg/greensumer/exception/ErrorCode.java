@@ -22,7 +22,13 @@ public enum ErrorCode {
     INVALID_VERIFICATION_CODE(HttpStatus.UNAUTHORIZED, "Code is invalid"),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "Product not founded"),
     DUPLICATED_STORE_NAME(HttpStatus.CONFLICT, "Name of Store is duplicated"),
-    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "store is invalid")
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "store is invalid"),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Comment not founded"),
+    SAME_AS_PREVIOUS_PASSWORD(HttpStatus.CONFLICT, "Same as Previous password"),
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "Address not founded"),
+    IMAGE_SAVE_FAIL(HttpStatus.CONFLICT, "Image save failed"),
+    IMAGE_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "Image not founded"),
+    PRODUCT_NOT_FOUND_ON_STORE(HttpStatus.NOT_FOUND, "Product not registered in the store")
     ;
 
     private HttpStatus status;

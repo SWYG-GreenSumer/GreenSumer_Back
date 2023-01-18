@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,9 +14,9 @@ public class ProductModifyRequest {
     private int price;
     private int stock;
     private String description;
-    private String image;
+    private List<Integer> images;
 
-    public static ProductModifyRequest of(String name, int price, int stock, String description, String image) {
-        return new ProductModifyRequest(name, price, stock, description, image);
+    public static ProductModifyRequest of(String name, int price, int stock, String description, List<Integer> images) {
+        return new ProductModifyRequest(name, price, stock, description, images);
     }
 }

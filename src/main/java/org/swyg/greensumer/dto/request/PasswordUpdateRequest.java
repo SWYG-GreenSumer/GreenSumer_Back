@@ -13,4 +13,8 @@ public class PasswordUpdateRequest {
     private String email;
     private String code;
     private String password;
+
+    public static PasswordUpdateRequest of(String username, String email, String code, String password) {
+        return new PasswordUpdateRequest(username, email, code, password);
+    }
 }

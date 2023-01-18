@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.swyg.greensumer.domain.VerificationEntity;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
@@ -25,6 +26,7 @@ public class VerificationService {
     private final JavaMailSender mailSender;
     private final VerificationEntityRepository verificationEntityRepository;
 
+    @Transactional
     public void sendMail(String email) {
         try{
             SimpleMailMessage message = new SimpleMailMessage();
@@ -52,9 +54,11 @@ public class VerificationService {
         Timestamp now = Timestamp.from(Instant.now());
 
         if(!(verification.getCode().equals(value) && now.before(verification.getExpiredAt()) && now.after(verification.getStartedAt()))){
-            verificationEntityRepository.deleteById(verification.getId());
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_VERIFICATION_CODE, String.format("%s is invalid", value));
         }
+
+        verification.setStatus(true);
+        verificationEntityRepository.saveAndFlush(verification);
     }
 
     private String createText(String value) {
@@ -75,5 +79,9 @@ public class VerificationService {
                 .filter((x) -> (x <= 57 || x >= 65) && (x <= 90 || x >= 97))
                 .limit((long)targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+    }
+
+    public void clear(String email) {
+        verificationEntityRepository.deleteBySubject(email);
     }
 }

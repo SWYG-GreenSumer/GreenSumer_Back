@@ -7,28 +7,30 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Objects;
 
 @Getter
 @ToString
-@Table(name = "\"verification\"", indexes = {
+@Table(name = "verification", indexes = {
         @Index(name = "subject_idx", columnList = "subject", unique = true)
 })
 @Entity
 public class VerificationEntity {
 
-    @Id
+    @Setter @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(nullable = false, length = 100, unique = true)
     private String subject;
 
-    @Setter
-    @Column(nullable = false, length = 6)
+    @Setter @Column(nullable = false, length = 6)
     private String code;
 
-    private Timestamp startedAt;
-    private Timestamp expiredAt;
+    @Setter private boolean status;
+
+    @Setter private Timestamp startedAt;
+    @Setter private Timestamp expiredAt;
 
     @PrePersist
     void startedAt() {
@@ -41,9 +43,22 @@ public class VerificationEntity {
     private VerificationEntity(String subject, String code) {
         this.subject = subject;
         this.code = code;
+        this.status = false;
     }
 
     public static VerificationEntity of(String subject, String code) {
         return new VerificationEntity(subject, code);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VerificationEntity that)) return false;
+        return this.getId() != null && this.getId().equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getId());
     }
 }

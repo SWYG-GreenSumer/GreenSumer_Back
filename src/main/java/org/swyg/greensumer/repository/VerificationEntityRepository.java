@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface VerificationEntityRepository extends JpaRepository<VerificationEntity, Integer> {
 
     Optional<VerificationEntity> findBySubject(String subject);
+    void deleteBySubject(String subject);
 
     void deleteById(Integer Id);
 }
