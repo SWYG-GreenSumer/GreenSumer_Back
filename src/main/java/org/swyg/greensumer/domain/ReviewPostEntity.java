@@ -77,6 +77,7 @@ public class ReviewPostEntity {
 
     public void addImages(Collection<ImageEntity> images) {
         images.forEach(e -> e.setReview(this));
+        this.images.clear();
         this.images.addAll(images);
     }
 

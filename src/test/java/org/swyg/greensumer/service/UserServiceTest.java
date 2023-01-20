@@ -63,7 +63,7 @@ class UserServiceTest {
         given(userEntityRepository.findByUsername(any())).willReturn(Optional.empty());
         given(addressService.findAddressEntity(any(), any(), any(), any())).willReturn(getAddressEntity());
         given(userEntityRepository.save(any())).willReturn(createSignUpUserAccount());
-        given(storeService.getStoreEntity(any())).willReturn(getStoreEntity());
+        given(storeService.searchStore(any())).willReturn(getStoreEntity());
         given(sellerStoreEntityRepository.save(any())).willReturn(getSellerStoreEntity());
 
         // When
@@ -73,7 +73,7 @@ class UserServiceTest {
         verify(userEntityRepository, times(1)).findByUsername(any());
         verify(addressService, times(1)).findAddressEntity(any(), any(), any(), any());
         verify(userEntityRepository, times(1)).save(any());
-        verify(storeService, times(1)).getStoreEntity(any());
+        verify(storeService, times(1)).searchStore(any());
         verify(sellerStoreEntityRepository, times(1)).save(any());
     }
 

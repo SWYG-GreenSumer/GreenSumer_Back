@@ -104,13 +104,13 @@ class ReviewPostControllerTest {
     @Test
     void givenNothing_whenRequestingReviewPost_thenReturnsMyReviewPostList() throws Exception {
         //when
-        when(reviewPostService.mylist(any(), any())).thenReturn(Page.empty());
+        when(reviewPostService.myList(any(), any())).thenReturn(Page.empty());
 
         mvc.perform(get("/api/v1/posts/my")
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk());
 
-        then(reviewPostService).should().mylist(any(), any());
+        then(reviewPostService).should().myList(any(), any());
     }
 
     @DisplayName("[view][GET] 본인이 작성한 후기 게시글 리스트 페이지 - 로그인하지 않은 경우")

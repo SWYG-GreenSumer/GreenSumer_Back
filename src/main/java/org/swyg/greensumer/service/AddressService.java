@@ -20,27 +20,17 @@ public class AddressService {
     }
 
     public AddressEntity searchAddress(Long id) {
-        return addressEntityRepository.findById(id)
-                .orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.ADDRESS_NOT_FOUND, String.format("%s not founded", id)));
+        return addressEntityRepository.findById(id).orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.ADDRESS_NOT_FOUND, String.format("%s not founded", id)));
     }
 
-    public AddressEntity updateAddress(AddressEntity addressEntity, AddressEntity updatedAddress) {
+    public AddressEntity updateAddress(Long id, String address, String roadname, double latitude, double longitude) {
         // 유효성 검사
-        searchAddress(addressEntity.getId());
+        AddressEntity addressEntity = searchAddress(id);
 
-        if(!(addressEntity.getAddress().equals(updatedAddress.getAddress()) ||
-                addressEntity.getRoadname().equals(updatedAddress.getRoadname()) ||
-                addressEntity.getLatitude().equals(updatedAddress.getLatitude()) ||
-                addressEntity.getLongitude().equals(updatedAddress.getLongitude()))
-        ) {
-
-            addressEntity.setAddress(updatedAddress.getAddress());
-            addressEntity.setRoadname(updatedAddress.getRoadname());
-            addressEntity.setLatitude(updatedAddress.getLatitude());
-            addressEntity.setLongitude(updatedAddress.getLongitude());
-
-            return addressEntityRepository.saveAndFlush(addressEntity);
-        }
+        addressEntity.setAddress(address);
+        addressEntity.setRoadname(roadname);
+        addressEntity.setLatitude(latitude);
+        addressEntity.setLongitude(longitude);
 
         return addressEntity;
     }

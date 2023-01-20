@@ -69,6 +69,7 @@ public class ProductEntity {
 
     public void addImages(Collection<ImageEntity> images) {
         images.forEach(e -> e.setProduct(this));
+        this.images.clear();
         this.images.addAll(images);
     }
     public void deleteImage(ImageEntity image) {

@@ -78,7 +78,7 @@ public class UserService {
     }
 
     private void mappingSellerAndStore(UserEntity userEntity, AddressEntity addressEntity) {
-        StoreEntity storeEntity = storeService.getStoreEntity(addressEntity);
+        StoreEntity storeEntity = storeService.searchStore(addressEntity);
 
         SellerStoreEntity sellerStoreEntity = SellerStoreEntity.of(storeEntity, userEntity);
         storeEntity.addSellerStore(sellerStoreEntity);
@@ -148,20 +148,24 @@ public class UserService {
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission to %s", username, request.getUsername()));
         }
 
-        UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        UserEntity userEntity = findByUsernameOrException(username);
 
         userEntity.setPassword(encoder.encode(request.getPassword()));
         userEntity.setNickname(request.getNickname());
         userEntity.setEmail(request.getEmail());
 
         if(userEntity.getRole() == UserRole.SELLER){
-            AddressEntity addressEntity = addressService.updateAddress(userEntity.getAddressEntity(), AddressEntity.of(request.getAddress(), request.getAddress(), request.getLat(), request.getLat()));
+            AddressEntity addressEntity = addressService.updateAddress(userEntity.getAddressEntity().getId(), request.getAddress(), request.getAddress(), request.getLat(), request.getLat());
             userEntity.setAddressEntity(addressEntity);
         }
 
-        return User.fromEntity(userEntityRepository.saveAndFlush(userEntity));
+        return User.fromEntity(userEntity);
+    }
+
+    public UserEntity findByUsernameOrException(String username) {
+        return userEntityRepository.findByUsername(username).orElseThrow(() -> {
+            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
+        });
     }
 
 }

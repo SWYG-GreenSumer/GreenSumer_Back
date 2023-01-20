@@ -284,7 +284,7 @@ class ReviewPostServiceTest {
         given(reviewPostEntityRepository.findAllByUser(userEntity, pageable)).willReturn(Page.empty());
 
         // When
-        sut.mylist(userEntity.getUsername(), pageable);
+        sut.myList(userEntity.getUsername(), pageable);
 
         //Then
         verify(userEntityRepository, times(1)).findByUsername(any());

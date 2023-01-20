@@ -13,12 +13,12 @@ import org.swyg.greensumer.dto.request.ImagesCreateRequest;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.repository.ImageEntityRepository;
-import org.swyg.greensumer.repository.UserEntityRepository;
 import org.swyg.greensumer.utils.ImageUtils;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,36 +27,29 @@ import java.util.stream.Collectors;
 public class ImageService {
 
     private final ImageEntityRepository imageEntityRepository;
-    private final UserEntityRepository userEntityRepository;
+    private final UserService userService;
 
     @Transactional
     public Image saveImage(MultipartFile image, String type, String username) throws IOException {
-        UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        UserEntity userEntity = userService.findByUsernameOrException(username);
+        String originFilename = image.getOriginalFilename();
+        String savedFilename = getSavedFilename(originFilename);
 
-        String savedFilename = UUID.randomUUID() + "_" + image.getOriginalFilename();
+        if (Objects.isNull(image)) {
+            throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_IS_NULL, String.format("Image is Null"));
+        }
 
         ImageEntity imageEntity = imageEntityRepository.save(
-                ImageEntity.of(ImageType.valueOf(type), userEntity, image.getOriginalFilename(), savedFilename, ImageUtils.compressImage(image.getBytes()))
+                ImageEntity.of(ImageType.valueOf(type), userEntity, originFilename, savedFilename, ImageUtils.compressImage(image.getBytes()))
         );
-
-        if(imageEntity == null){
-            throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_SAVE_FAIL, String.format("%s cant save", image.getOriginalFilename()));
-        }
 
         return Image.fromEntity(imageEntity);
     }
 
     public Image searchImage(Integer imageId, String username) {
-        UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        userService.loadUserByUsername(username);
 
-        ImageEntity imageEntity = imageEntityRepository.findById(imageId).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND, String.format("%s not founded", imageId));
-        });
-
+        ImageEntity imageEntity = getImageEntityOrException(imageId);
         imageEntity.setImageData(ImageUtils.decompressImage(imageEntity.getImageData()));
 
         return Image.fromEntity(imageEntity);
@@ -64,16 +57,13 @@ public class ImageService {
 
     @Transactional
     public List<Image> saveImages(ImagesCreateRequest request, String username) throws IOException {
-        UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        UserEntity userEntity = userService.findByUsernameOrException(username);
 
         List<ImageEntity> imageEntities = new LinkedList<>();
         ImageType type = ImageType.valueOf(request.getType());
 
-        for(MultipartFile image : request.getImages()){
-
-            String savedFilename = UUID.randomUUID() + "_" + image.getOriginalFilename();
+        for (MultipartFile image : request.getImages()) {
+            String savedFilename = getSavedFilename(image.getOriginalFilename());
 
             ImageEntity entity = ImageEntity.of(type, userEntity, image.getOriginalFilename(), savedFilename, ImageUtils.compressImage(image.getBytes()));
             entity.setProduct(null);
@@ -87,13 +77,9 @@ public class ImageService {
     }
 
     public Image modifyImage(Integer imageId, ImageModifyRequest request, String username) throws IOException {
-        UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        userService.loadUserByUsername(username);
 
-        ImageEntity imageEntity = imageEntityRepository.findById(imageId).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND, String.format("%s not founded", imageId));
-        });
+        ImageEntity imageEntity = getImageEntityOrException(imageId);
 
         imageEntity.setImageData(ImageUtils.compressImage(request.getImage().getBytes()));
         imageEntity.setImageType(ImageType.valueOf(request.getType()));
@@ -102,10 +88,23 @@ public class ImageService {
     }
 
     public void removeImage(Integer imageId, String username) {
-        userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        userService.loadUserByUsername(username);
 
         imageEntityRepository.deleteById(imageId);
     }
+
+    private static String getSavedFilename(String filename) {
+        return UUID.randomUUID() + "_" + filename;
+    }
+
+    private ImageEntity getImageEntityOrException(Integer imageId) {
+        return imageEntityRepository.findById(imageId).orElseThrow(() -> {
+            throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND, String.format("%s not founded", imageId));
+        });
+    }
+
+    public List<ImageEntity> findAllByIdIn(List<Integer> imageIds) {
+        return imageEntityRepository.findAllByIdIn(imageIds);
+    }
+
 }

@@ -113,6 +113,7 @@ public class StoreEntity {
 
     public void addImages(Collection<ImageEntity> images) {
         images.forEach(e -> e.setStore(this));
+        this.logos.clear();
         this.logos.addAll(images);
     }
 
