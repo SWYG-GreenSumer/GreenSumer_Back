@@ -34,7 +34,7 @@ jobs:
                 - name: JWT_KEY
                   secret : JWT_KEY
                 - name: KAKAO_REST_API_KEY
-                  secret : 79f20dc8674201d6fd118e136e586237
+                  secret : KAKAO_REST_API_KEY
                 - name: MAIL_HOST
                   secret : MAIL_HOST
                 - name: MAIL_PASSWORD
