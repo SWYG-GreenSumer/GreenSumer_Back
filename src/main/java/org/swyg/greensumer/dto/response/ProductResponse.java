@@ -12,7 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductResponse {
-    private Integer id;
+    private Long id;
     private String name;
     private int price;
     private int stock;

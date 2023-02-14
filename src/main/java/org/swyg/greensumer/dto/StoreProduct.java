@@ -11,8 +11,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoreProduct {
-
-    private Integer id;
+    private Long id;
     private Store store;
     private Product product;
     private Timestamp registeredAt;

@@ -6,15 +6,20 @@ import lombok.NoArgsConstructor;
 import org.swyg.greensumer.domain.ReviewPostEntity;
 
 import java.sql.Timestamp;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewPost {
-    private Integer id;
+    private Long id;
     private String title;
     private String content;
-    private Product product;
+    private Integer views;
+    private Integer likes;
+    private Set<ReviewComment> comments;
+    private Set<Product> products;
     private User user;
     private Timestamp registeredAt;
     private Timestamp updatedAt;
@@ -25,7 +30,14 @@ public class ReviewPost {
                 entity.getId(),
                 entity.getTitle(),
                 entity.getContent(),
-                Product.fromEntity(entity.getProduct()),
+                entity.getViewer().size(),
+                entity.getLikes().size(),
+                entity.getComments().stream()
+                        .map(ReviewComment::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
+                entity.getProducts().stream()
+                        .map(Product::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
                 User.fromEntity(entity.getUser()),
                 entity.getRegisteredAt(),
                 entity.getUpdatedAt(),

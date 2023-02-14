@@ -14,9 +14,9 @@ public class ProductModifyRequest {
     private int price;
     private int stock;
     private String description;
-    private List<Integer> images;
+    private List<Long> images;
 
-    public static ProductModifyRequest of(String name, int price, int stock, String description, List<Integer> images) {
+    public static ProductModifyRequest of(String name, int price, int stock, String description, List<Long> images) {
         return new ProductModifyRequest(name, price, stock, description, images);
     }
 }

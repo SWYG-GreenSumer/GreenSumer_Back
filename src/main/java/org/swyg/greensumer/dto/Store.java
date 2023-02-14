@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Store {
-    private Integer id;
+    private Long id;
     private String name;
     private String description;
     private Address address;

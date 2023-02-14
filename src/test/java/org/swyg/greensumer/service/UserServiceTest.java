@@ -16,9 +16,9 @@ import org.swyg.greensumer.dto.User;
 import org.swyg.greensumer.dto.request.UpdateUserRequest;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.SellerStoreEntityRepository;
-import org.swyg.greensumer.repository.UserCacheRepository;
-import org.swyg.greensumer.repository.UserEntityRepository;
+import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
+import org.swyg.greensumer.repository.user.UserCacheRepository;
+import org.swyg.greensumer.repository.user.UserEntityRepository;
 
 import java.util.Optional;
 

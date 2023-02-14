@@ -14,10 +14,11 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewPostWithComment {
-    private Integer id;
+    private Long id;
     private String title;
     private String content;
-    private Product product;
+    private Integer views;
+    private Set<Product> products;
     private User user;
     private Set<ReviewComment> reviewComments;
     private Timestamp registeredAt;
@@ -29,7 +30,10 @@ public class ReviewPostWithComment {
                 entity.getId(),
                 entity.getTitle(),
                 entity.getContent(),
-                Product.fromEntity(entity.getProduct()),
+                entity.getViewer().size(),
+                entity.getProducts().stream()
+                        .map(Product::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
                 User.fromEntity(entity.getUser()),
                 entity.getComments().stream()
                         .map(ReviewComment::fromEntity)

@@ -5,35 +5,40 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import org.swyg.greensumer.domain.AddressEntity;
 import org.swyg.greensumer.domain.SellerStoreEntity;
 import org.swyg.greensumer.domain.StoreEntity;
 import org.swyg.greensumer.domain.UserEntity;
 import org.swyg.greensumer.domain.constant.UserRole;
+import org.swyg.greensumer.dto.TokenInfo;
 import org.swyg.greensumer.dto.User;
-import org.swyg.greensumer.dto.request.UpdateUserRequest;
-import org.swyg.greensumer.dto.request.UserSignUpRequest;
+import org.swyg.greensumer.dto.request.*;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.SellerStoreEntityRepository;
-import org.swyg.greensumer.repository.UserCacheRepository;
-import org.swyg.greensumer.repository.UserEntityRepository;
+import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
 import org.swyg.greensumer.utils.JwtTokenUtils;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
 public class UserService {
 
-    private final UserEntityRepository userEntityRepository;
     private final StoreService storeService;
     private final AddressService addressService;
+    private final UserEntityRepositoryService userEntityRepositoryService;
     private final SellerStoreEntityRepository sellerStoreEntityRepository;
-    private final UserCacheRepository userCacheRepository;
     private final VerificationService verificationService;
+
     private final BCryptPasswordEncoder encoder;
 
-    @Value("${jwt.secret-key}") private String secretKey;
-    @Value("${jwt.token.expired-time-ms}") private Long expiredTimeMs;
+    @Value("${jwt.secret-key}")
+    private String secretKey;
+    @Value("${jwt.token.expired-time-ms}")
+    private Long expiredTimeMs;
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
@@ -45,36 +50,20 @@ public class UserService {
 
     @Transactional
     public User signup(UserSignUpRequest request) {
-        // 1. 회원가입된 유저인지 확인한다.
-        String username = request.getUsername();
+        userEntityRepositoryService.existUsername(request.getUsername());
 
-        userEntityRepository.findByUsername(username).ifPresent(it -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_USERNAME, String.format("%s is duplicated", username));
-        });
+        UserEntity userEntity = userEntityRepositoryService.save(UserEntity.builder()
+                .username(request.getUsername())
+                .password(encoder.encode(request.getPassword()))
+                .nickname(request.getNickname())
+                .fullname(request.getName())
+                .email(request.getEmail())
+                .birth(LocalDateTime.parse(request.getBirth()))
+                .gender(request.isGender())
+                .roles(Collections.singletonList(UserRole.USER.name()))
+                .build());
 
-        AddressEntity addressEntity = null;
-
-        if(request.getAddress() != null){
-            addressEntity = addressService.findAddressEntity(request.getAddress(), request.getAddress(), request.getLat(), request.getLat());
-        }
-
-        UserEntity userEntity = UserEntity.of(
-                request.getUsername(),
-                encoder.encode(request.getPassword()),
-                request.getNickname(),
-                request.getEmail(),
-                addressEntity
-        );
-
-        // 3. 회원을 저장한다.
-        UserEntity savedUser = userEntityRepository.save(userEntity);
-
-        // 4. 유저가 Seller 인 경우
-        if(savedUser.getRole() == UserRole.SELLER){
-            mappingSellerAndStore(savedUser, addressEntity);
-        }
-
-        return User.fromEntity(savedUser);
+        return User.fromEntity(userEntity);
     }
 
     private void mappingSellerAndStore(UserEntity userEntity, AddressEntity addressEntity) {
@@ -85,88 +74,84 @@ public class UserService {
         sellerStoreEntityRepository.save(sellerStoreEntity);
     }
 
-    public String login(String username, String password) {
-        User user = loadUserByUsername(username);
+    public TokenInfo login(UserLoginRequest request) {
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(request.getUsername());
+        User user = User.fromEntity(userEntity);
 
-        // 비밀번호 체크
-        if (!encoder.matches(password, user.getPassword())) {
+        if (!encoder.matches(request.getPassword(), user.getPassword())) {
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
-        userCacheRepository.setUser(user);
+        TokenInfo tokenInfo = JwtTokenUtils.createTokenInfo(user, secretKey);
+        userEntityRepositoryService.setRefreshToken(user, tokenInfo.getRefreshToken());
 
-        // 토큰 생성
-        return JwtTokenUtils.generateToken(username, secretKey, expiredTimeMs);
+        return tokenInfo;
     }
 
-    public User loadUserByUsername(String username) {
-        return userCacheRepository.getUser(username).orElseGet(() ->
-                userEntityRepository.findByUsername(username).map(User::fromEntity).orElseThrow(() ->
-                        new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username))));
+    public TokenInfo reissue(String accessToken, String refreshToken) {
+        String username = JwtTokenUtils.getUsername(accessToken, secretKey);
+        String refreshTokenFromRedis = userEntityRepositoryService.getRefreshToken(username);
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
+        User user = User.fromEntity(userEntity);
+
+        if (ObjectUtils.isEmpty(refreshTokenFromRedis)) {
+            throw new GreenSumerBackApplicationException(ErrorCode.INVALID_TOKEN, "Invalid Access Token");
+        }
+
+        if (!refreshToken.equals(refreshTokenFromRedis.substring(1, refreshTokenFromRedis.length() - 1))) {
+            throw new GreenSumerBackApplicationException(ErrorCode.INVALID_PERMISSION, "Refresh Token is invalid.");
+        }
+
+        TokenInfo tokenInfo = JwtTokenUtils.createTokenInfo(user, secretKey);
+        userEntityRepositoryService.setRefreshToken(user, tokenInfo.getRefreshToken());
+
+        return tokenInfo;
+    }
+
+    public void logout(UserLogoutRequest logout) {
+        String username = JwtTokenUtils.getUsername(logout.getAccessToken(), secretKey);
+        userEntityRepositoryService.deleteRefreshToken(username);
     }
 
     @Transactional(readOnly = true)
     public void existUsername(String username) {
-        userEntityRepository.findByUsername(username).ifPresent(it -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_USERNAME, String.format("%s is duplicated", username));
-        });
+        userEntityRepositoryService.existUsername(username);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public User findUsername(String email, String code) {
         verificationService.checkMail(email, code);
-
-        UserEntity user = userEntityRepository.findByEmail(email).orElseThrow(() ->
-                new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", email)));
-
-        verificationService.clear(email);
-
-        return User.fromEntity(user);
+        return User.fromEntity(userEntityRepositoryService.findByEmail(email));
     }
 
     @Transactional
     public void findPassword(String username, String email, String code, String password) {
         verificationService.checkMail(email, code);
 
-        UserEntity user = userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
 
-        if (!encoder.matches(password, user.getPassword())) {
+        if (encoder.matches(password, userEntity.getPassword())) {
             throw new GreenSumerBackApplicationException(ErrorCode.SAME_AS_PREVIOUS_PASSWORD, String.format("%s same as before", password));
         }
 
-        verificationService.clear(email);
-
-        user.setPassword(encoder.encode(password));
-        userEntityRepository.save(user);
+        userEntity.updatePassword(encoder.encode(password));
     }
 
     @Transactional
     public User updateUserInfo(UpdateUserRequest request, String username) {
-        if (request.getUsername() != username) {
+        if (!Objects.equals(request.getUsername(), username)) {
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission to %s", username, request.getUsername()));
         }
 
-        UserEntity userEntity = findByUsernameOrException(username);
-
-        userEntity.setPassword(encoder.encode(request.getPassword()));
-        userEntity.setNickname(request.getNickname());
-        userEntity.setEmail(request.getEmail());
-
-        if(userEntity.getRole() == UserRole.SELLER){
-            AddressEntity addressEntity = addressService.updateAddress(userEntity.getAddressEntity().getId(), request.getAddress(), request.getAddress(), request.getLat(), request.getLat());
-            userEntity.setAddressEntity(addressEntity);
-        }
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
+        userEntity.updateUserInfo(encoder.encode(request.getPassword()), request.getNickname(), request.getEmail());
 
         return User.fromEntity(userEntity);
     }
 
-    public UserEntity findByUsernameOrException(String username) {
-        return userEntityRepository.findByUsername(username).orElseThrow(() -> {
-            throw new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username));
-        });
+    public void requestLevelUp(RequestLevelUp request, String username) {
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
+        userEntity.updateRole(request.getRole());
     }
-
 }
 

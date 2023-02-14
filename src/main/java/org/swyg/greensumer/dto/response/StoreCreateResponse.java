@@ -13,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoreCreateResponse {
-    private Integer id;
+    private Long id;
     private String name;
     private String description;
     private String address;

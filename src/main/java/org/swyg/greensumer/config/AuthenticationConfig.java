@@ -2,50 +2,52 @@ package org.swyg.greensumer.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.swyg.greensumer.config.filter.JwtTokenFilter;
 import org.swyg.greensumer.exception.CustomAuthenticationEntryPoint;
-import org.swyg.greensumer.service.UserService;
+import org.swyg.greensumer.service.UserEntityRepositoryService;
 
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
-public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
+public class AuthenticationConfig {
 
     @Value("${jwt.secret-key}")
     private String key;
 
-    private final UserService userService;
+    private final UserEntityRepositoryService userEntityRepositoryService;
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring()
-                .regexMatchers("^(?!/api/).*")
-                .antMatchers(HttpMethod.POST, "/api/*/users/sign-up", "/api/*/users/login", "/api/*/users/mail", "/api/*/stores")
-                .antMatchers(HttpMethod.GET, "/api/*/users/existUsername", "/api/v1/posts", "/api/v1/image/*")
-                .antMatchers(HttpMethod.PUT, "/api/*/users/find/password", "/api/*/users/mail", "/api/*/users/find/username")
-        ;
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/api/**").authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(new JwtTokenFilter(key, userService), UsernamePasswordAuthenticationFilter.class)
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf().disable()
+                .authorizeRequests(auth -> auth
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        .mvcMatchers("/api/users/**").permitAll()
+                        .mvcMatchers("/api/reviews").authenticated()
+                        .mvcMatchers("/api/images").authenticated()
+                        .mvcMatchers("/api/interviews").hasRole("ADMIN")
+                        .mvcMatchers("/api/stores", "/api/events").hasRole("SELLER")
+                        .antMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
+                        .antMatchers(HttpMethod.GET, "/api/reviews", "/api/reviews/news").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/stores", "/api/stores/*/products", "/api/stores/*/products/{productId:[\\\\d+]}").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/events", "/api/events/news", "/api/interviews").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(h -> h.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(new JwtTokenFilter(key, userEntityRepositoryService), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling()
-                .authenticationEntryPoint(new CustomAuthenticationEntryPoint());
+                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                .and()
+                .build();
     }
 
 }

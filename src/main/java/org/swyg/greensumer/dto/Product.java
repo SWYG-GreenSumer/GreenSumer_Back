@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-    private Integer id;
+    private Long id;
     private String name;
     private int price;
     private int stock;

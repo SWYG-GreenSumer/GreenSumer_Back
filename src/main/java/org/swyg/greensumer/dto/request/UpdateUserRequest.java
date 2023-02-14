@@ -12,12 +12,9 @@ public class UpdateUserRequest {
     private String password;
     private String email;
     private String nickname;
-    private String address;
-    private Double lat;
-    private Double lng;
 
-    public static UpdateUserRequest of(String username, String password, String email, String nickname, String address, Double lat, Double lng) {
-        return new UpdateUserRequest(username, password, email, nickname, address, lat, lng);
+    public static UpdateUserRequest of(String username, String password, String email, String nickname) {
+        return new UpdateUserRequest(username, password, email, nickname);
     }
 
 }

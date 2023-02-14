@@ -7,10 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.swyg.greensumer.domain.VerificationEntity;
+import org.swyg.greensumer.dto.Verification;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.VerificationEntityRepository;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -51,7 +50,7 @@ class VerificationServiceTest {
     @Test
     void givenEmailAndCode_whenRequestingCheckMailAndCode_thenReturnNothing() {
         // Given
-        VerificationEntity verification = getVerificationEntity();
+        Verification verification = getVerificationEntity();
         String email = verification.getSubject();
         given(verificationEntityRepository.findBySubject(any())).willReturn(Optional.of(getVerificationEntity()));
         given(verificationEntityRepository.saveAndFlush(any())).willReturn(verification);
@@ -68,7 +67,7 @@ class VerificationServiceTest {
     @Test
     void givenEmailAndCode_whenRequestingCheckMailAndCode_thenThrowMailNotFoundException() {
         // Given
-        VerificationEntity verification = getVerificationEntity();
+        Verification verification = getVerificationEntity();
         String email = verification.getSubject();
         given(verificationEntityRepository.findBySubject(email)).willReturn(Optional.empty());
 
@@ -85,7 +84,7 @@ class VerificationServiceTest {
     @Test
     void givenEmailAndCode_whenRequestingCheckMailAndCode_thenThrowInvalidVerificationCodeException() {
         // Given
-        VerificationEntity verification = getVerificationEntity();
+        Verification verification = getVerificationEntity();
         String email = verification.getSubject();
         given(verificationEntityRepository.findBySubject(email)).willReturn(Optional.of(verification));
 
@@ -103,7 +102,7 @@ class VerificationServiceTest {
     @Test
     void givenEmailAndCode_whenRequestingCheckMailAndCode_thenThrowInvalidVerificationCode2Exception() {
         // Given
-        VerificationEntity verification = getVerificationEntity();
+        Verification verification = getVerificationEntity();
         String email = verification.getSubject();
         verification.setExpiredAt(Timestamp.from(Instant.now()));
 

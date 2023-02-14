@@ -9,7 +9,7 @@ import org.swyg.greensumer.domain.UserEntity;
 import org.swyg.greensumer.dto.ReviewComment;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.ReviewCommentRepository;
+import org.swyg.greensumer.repository.review.ReviewCommentRepository;
 
 @RequiredArgsConstructor
 @Service
@@ -17,12 +17,12 @@ public class ReviewCommentService {
 
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewPostService reviewPostService;
-    private final UserService userService;
+    private final UserEntityRepositoryService userEntityRepositoryService;
 
-    public void createComment(Integer postId, String content, String username) {
+    @Transactional
+    public void createComment(Long postId, String content, String username) {
         ReviewPostEntity reviewPostEntity = reviewPostService.getReviewPostEntityOrException(postId);
-
-        UserEntity userEntity = userService.findByUsernameOrException(username);
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
 
         reviewCommentRepository.save(ReviewCommentEntity.of(
                 reviewPostEntity,
@@ -32,27 +32,21 @@ public class ReviewCommentService {
     }
 
     @Transactional
-    public ReviewComment modifyComment(Integer postId, Integer commentId, String content, String username) {
+    public ReviewComment modifyComment(Long postId, Long commentId, String content, String username) {
         ReviewPostEntity reviewPostEntity = reviewPostService.getReviewPostEntityOrException(postId);
-
-        userService.loadUserByUsername(username);
-
         ReviewCommentEntity reviewCommentEntity = getReviewCommentEntityOrException(commentId);
 
         if (!reviewCommentEntity.getUser().getUsername().equals(username)) {
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission", username));
         }
 
-        reviewCommentEntity.setContent(content);
+        reviewCommentEntity.update(content);
 
         return ReviewComment.fromEntity(reviewCommentEntity);
     }
 
-    public void deleteComment(Integer postId, Integer commentId, String username) {
+    public void deleteComment(Long postId, Long commentId, String username) {
         ReviewPostEntity reviewPost = reviewPostService.getReviewPostEntityOrException(postId);
-
-        userService.loadUserByUsername(username);
-
         ReviewCommentEntity reviewCommentEntity = getReviewCommentEntityOrException(commentId);
 
         if (!reviewCommentEntity.getUser().getUsername().equals(username)) {
@@ -62,7 +56,7 @@ public class ReviewCommentService {
         reviewCommentRepository.deleteById(commentId);
     }
 
-    private ReviewCommentEntity getReviewCommentEntityOrException(Integer commentId){
+    private ReviewCommentEntity getReviewCommentEntityOrException(Long commentId){
         return reviewCommentRepository.findById(commentId)
                 .orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.COMMENT_NOT_FOUND, String.format("%s not founded", commentId)));
     }

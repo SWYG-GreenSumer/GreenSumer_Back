@@ -1,12 +1,12 @@
 package org.swyg.greensumer.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
-@Setter
+@AllArgsConstructor
 public class ImageCreateRequest {
     private MultipartFile image;
-    private String type;
+    private String type;            // REVIEW, EVENT, PRODUCT, STORE
 }

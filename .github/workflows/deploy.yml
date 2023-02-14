@@ -1,0 +1,59 @@
+name: Deploy to cloudtype
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Connect deploy key
+        uses: cloudtype-github-actions/connect@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          ghtoken: ${{ secrets.GHP_TOKEN }}
+      - name: Deploy
+        uses: cloudtype-github-actions/deploy@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          project: greensumer/greensumer
+          stage: main
+          yaml: |
+            name: greensumer-back
+            app: java@17
+            options:
+              env:
+                - name: DB_HOST
+                  secret : DB_HOST
+                - name: DB_USERNAME
+                  secret : DB_USERNAME
+                - name: JWT_EXPIRED_TIME_MS
+                  secret : JWT_EXPIRED_TIME_MS
+                - name: JWT_KEY
+                  secret : JWT_KEY
+                - name: KAKAO_REST_API_KEY
+                  secret : 79f20dc8674201d6fd118e136e586237
+                - name: MAIL_HOST
+                  secret : MAIL_HOST
+                - name: MAIL_PASSWORD
+                  secret : MAIL_PASSWORD
+                - name: MAIL_USERNAME
+                  secret : MAIL_USERNAME
+                - name: REDIS_HOST
+                  secret : REDIS_HOST
+                - name: REDIS_PORT
+                  secret : REDIS_PORT
+                - name: REDIS_PORT
+                  secret : REDIS_PORT
+                - name: DB_PASSWORD
+                  secret : mariadb-root-password
+                - name : REDIS_PASSWORD
+                  secret : redis-password
+              ports: 8080/http
+            context:
+              git:
+                url: git@github.com:${{ github.repository }}.git
+                ref: ${{ github.ref }}
+              preset: java-springboot

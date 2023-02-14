@@ -9,7 +9,7 @@ import org.swyg.greensumer.domain.SellerStoreEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SellerStore {
-    private Integer id;
+    private Long id;
     private Store store;
     private User seller;
 

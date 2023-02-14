@@ -6,10 +6,10 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.swyg.greensumer.domain.VerificationEntity;
+import org.swyg.greensumer.dto.Verification;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.VerificationEntityRepository;
+import org.swyg.greensumer.repository.user.VerificationCacheRepository;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -24,7 +24,7 @@ public class VerificationService {
     static final String mailSubject = "[GreenSumer] 인증번호 발송";
 
     private final JavaMailSender mailSender;
-    private final VerificationEntityRepository verificationEntityRepository;
+    private final VerificationCacheRepository verificationCacheRepository;
 
     @Transactional
     public void sendMail(String email) {
@@ -38,16 +38,16 @@ public class VerificationService {
 
             mailSender.send(message);
 
-            VerificationEntity verification = verificationEntityRepository.save(VerificationEntity.of(email, code));
-            log.info("send Mail to {}", verification.getSubject());
+            verificationCacheRepository.setVerification(Verification.of(email, code));
+            log.info("send Mail to {}", email);
+
         }catch (Exception e){
             throw new GreenSumerBackApplicationException(ErrorCode.MAIL_SEND_ERROR, String.format("%s cant sent Mail", email));
         }
     }
 
     public void checkMail(String subject, String value){
-        // TODO: DB에 많은 영향을 줄 것으로 판단되어 캐시로 변경할 것
-        VerificationEntity verification = verificationEntityRepository.findBySubject(subject).orElseThrow(
+        Verification verification = verificationCacheRepository.getVerification(subject).orElseThrow(
                 () -> new GreenSumerBackApplicationException(ErrorCode.MAIL_NOT_FOUND, String.format("%s not founded", subject))
         );
 
@@ -56,9 +56,6 @@ public class VerificationService {
         if(!(verification.getCode().equals(value) && now.before(verification.getExpiredAt()) && now.after(verification.getStartedAt()))){
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_VERIFICATION_CODE, String.format("%s is invalid", value));
         }
-
-        verification.setStatus(true);
-        verificationEntityRepository.saveAndFlush(verification);
     }
 
     private String createText(String value) {
@@ -77,11 +74,8 @@ public class VerificationService {
 
         return random.ints(leftLimit, rightLimit + 1)
                 .filter((x) -> (x <= 57 || x >= 65) && (x <= 90 || x >= 97))
-                .limit((long)targetStringLength)
+                .limit((long) targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }
 
-    public void clear(String email) {
-        verificationEntityRepository.deleteBySubject(email);
-    }
 }

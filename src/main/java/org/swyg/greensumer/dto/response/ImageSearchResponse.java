@@ -9,7 +9,7 @@ import org.swyg.greensumer.dto.Image;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageSearchResponse {
-    private Integer id;
+    private Long id;
     private String fileName;
     private byte[] image;
 

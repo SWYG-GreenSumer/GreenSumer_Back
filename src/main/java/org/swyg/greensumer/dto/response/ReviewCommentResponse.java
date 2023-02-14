@@ -11,8 +11,8 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewCommentResponse {
-    private Integer id;
-    private Integer reviewPost;
+    private Long id;
+    private Long reviewPostId;
     private String username;
     private String content;
     private Timestamp registeredAt;

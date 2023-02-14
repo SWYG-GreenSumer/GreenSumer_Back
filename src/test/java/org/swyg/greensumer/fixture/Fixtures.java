@@ -175,9 +175,9 @@ public class Fixtures {
         return reviewPost;
     }
 
-    public static VerificationEntity getVerificationEntity() {
+    public static Verification getVerificationEntity() {
         String code = "abcdef";
-        VerificationEntity verification = VerificationEntity.of(email, code);
+        Verification verification = Verification.of(email, code);
         verification.setId(1);
         verification.setStartedAt(Timestamp.from(Instant.now()));
         verification.setExpiredAt(new Timestamp(System.currentTimeMillis() + 180_000));

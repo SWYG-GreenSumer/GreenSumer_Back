@@ -1,19 +1,20 @@
 package org.swyg.greensumer.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Setter
+@Builder
+@AllArgsConstructor
 @Getter
 @Entity
 @Table(name = "product", indexes = {
@@ -21,13 +22,19 @@ import java.util.Set;
 })
 @SQLDelete(sql = "UPDATE product SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
-public class ProductEntity {
+public class ProductEntity extends DateTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "product")
     private Set<StoreProductEntity> storeProducts = new LinkedHashSet<>();
+
+    @JsonIgnore @ManyToOne(optional = false, fetch = FetchType.EAGER) @JoinColumn(name = "review_id")
+    private ReviewPostEntity reviewPost;
+
+    @JsonIgnore @ManyToOne(optional = false, fetch = FetchType.EAGER) @JoinColumn(name = "event_id")
+    private EventPostEntity eventPost;
 
     @Column(name = "name", length = 50) private String name;
 
@@ -38,20 +45,15 @@ public class ProductEntity {
 
     @OrderBy("id asc")  // 아이디 순으로 정렬
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "product", cascade = {CascadeType.ALL}, orphanRemoval = true)
-    private Set<ImageEntity> images = new LinkedHashSet<>();
+    private Set<ProductImageEntity> images = new LinkedHashSet<>();
 
-    @Column(name = "registered_at")
-    private Timestamp registeredAt;
+    public void setReviewPost(ReviewPostEntity reviewPost) {
+        this.reviewPost = reviewPost;
+    }
 
-    @Column(name = "updated_at")
-    private Timestamp updatedAt;
-
-    @Column(name = "deleted_at")
-    private Timestamp deletedAt;
-
-    @PrePersist void registeredAt() { this.registeredAt = Timestamp.from(Instant.now()); }
-
-    @PreUpdate void updatedAt() { this.updatedAt = Timestamp.from(Instant.now());}
+    public void setEventPost(EventPostEntity eventPost) {
+        this.eventPost = eventPost;
+    }
 
     public void addStoreProduct(StoreProductEntity storeProductEntity){
         storeProductEntity.setProduct(this);
@@ -62,24 +64,17 @@ public class ProductEntity {
         this.storeProducts.clear();
     }
 
-    public void addImage(ImageEntity image) {
-        image.setProduct(this);
-        this.images.add(image);
-    }
-
-    public void addImages(Collection<ImageEntity> images) {
+    public void addImages(Collection<ProductImageEntity> images) {
         images.forEach(e -> e.setProduct(this));
         this.images.clear();
         this.images.addAll(images);
     }
-    public void deleteImage(ImageEntity image) {
-        image.setProduct(this);
-        this.images.remove(image);
-    }
-    public void deleteImages(Collection<ImageEntity> images) {
+
+    public void deleteImages(Collection<ProductImageEntity> images) {
         images.forEach(e -> e.setProduct(this));
-        this.images.retainAll(images);
+        this.images.removeAll(images);
     }
+
     public void clearImages() {
         this.images.clear();
     }
@@ -107,5 +102,12 @@ public class ProductEntity {
     @Override
     public int hashCode() {
         return Objects.hash(this.getId());
+    }
+
+    public void updateProductInfo(String name, String description, int price, int stock) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.stock = stock;
     }
 }

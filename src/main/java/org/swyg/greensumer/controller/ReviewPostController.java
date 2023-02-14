@@ -12,16 +12,13 @@ import org.swyg.greensumer.dto.request.ReviewCommentCreateRequest;
 import org.swyg.greensumer.dto.request.ReviewCommentModifyRequest;
 import org.swyg.greensumer.dto.request.ReviewPostCreateRequest;
 import org.swyg.greensumer.dto.request.ReviewPostModifyRequest;
-import org.swyg.greensumer.dto.response.Response;
-import org.swyg.greensumer.dto.response.ReviewCommentResponse;
-import org.swyg.greensumer.dto.response.ReviewPostResponse;
-import org.swyg.greensumer.dto.response.ReviewPostWithCommentResponse;
+import org.swyg.greensumer.dto.response.*;
 import org.swyg.greensumer.service.ReviewCommentService;
 import org.swyg.greensumer.service.ReviewPostService;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/posts")
+@RequestMapping("/api/reviews")
 public class ReviewPostController {
 
     private final ReviewPostService reviewPostService;
@@ -29,36 +26,34 @@ public class ReviewPostController {
 
     @PostMapping
     public Response<Void> create(@RequestBody ReviewPostCreateRequest request, Authentication authentication) {
-        reviewPostService.create(request, request.getProductId(), authentication.getName());
-
+        reviewPostService.create(request, authentication.getName());
         return Response.success();
     }
 
     @PutMapping("/{postId}")
-    public Response<ReviewPostResponse> modify(@PathVariable Integer postId, @RequestBody ReviewPostModifyRequest request, Authentication authentication) {
-        System.out.println("TEST ***********");
-        System.out.println("REQUEST : " + request.toString());
-
-        ReviewPost reviewPost = reviewPostService.modify(request, postId, request.getProductId(), authentication.getName());
-
-
+    public Response<ReviewPostResponse> modify(@PathVariable Long postId, @RequestBody ReviewPostModifyRequest request, Authentication authentication) {
+        ReviewPost reviewPost = reviewPostService.modify(request, postId, authentication.getName());
         return Response.success(ReviewPostResponse.fromReviewPost(reviewPost));
     }
 
     @DeleteMapping("/{postId}")
-    public Response<Void> delete(@PathVariable Integer postId, Authentication authentication) {
+    public Response<Void> delete(@PathVariable Long postId, Authentication authentication) {
         reviewPostService.delete(postId, authentication.getName());
-
         return Response.success();
     }
 
     @GetMapping
-    public Response<Page<ReviewPostResponse>> list(Pageable pageable, Authentication authentication) {
-        return Response.success(reviewPostService.list(pageable).map(ReviewPostResponse::fromReviewPost));
+    public Response<Page<ReviewPostsResponse>> list(Pageable pageable) {
+        return Response.success(reviewPostService.list(pageable).map(ReviewPostsResponse::fromReviewPost));
+    }
+
+    @GetMapping("/news")
+    public Response<Page<ReviewNewPostResponse>> newList(Pageable pageable) {
+        return Response.success(reviewPostService.list(pageable).map(ReviewNewPostResponse::fromReviewPost));
     }
 
     @GetMapping("/{postId}")
-    public Response<ReviewPostWithCommentResponse> getPostAndComments(@PathVariable Integer postId, Authentication authentication) {
+    public Response<ReviewPostWithCommentResponse> getPostAndComments(@PathVariable Long postId, Authentication authentication) {
         ReviewPostWithComment postWithComment = reviewPostService.getPostAndComments(postId, authentication.getName());
         return Response.success(ReviewPostWithCommentResponse.fromReviewPostWithComment(postWithComment));
     }
@@ -69,7 +64,7 @@ public class ReviewPostController {
     }
 
     @PostMapping("/{postId}/comments")
-    public Response<Void> createComment(@PathVariable Integer postId, @RequestBody ReviewCommentCreateRequest request, Authentication authentication) {
+    public Response<Void> createComment(@PathVariable Long postId, @RequestBody ReviewCommentCreateRequest request, Authentication authentication) {
         reviewCommentService.createComment(postId, request.getContent(), authentication.getName());
 
         return Response.success();
@@ -77,8 +72,8 @@ public class ReviewPostController {
 
     @PutMapping("/{postId}/comments/{commentId}")
     public Response<ReviewCommentResponse> modifyComment(
-            @PathVariable Integer postId,
-            @PathVariable Integer commentId,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
             @RequestBody ReviewCommentModifyRequest request,
             Authentication authentication
     ) {
@@ -87,8 +82,14 @@ public class ReviewPostController {
     }
 
     @DeleteMapping("/{postId}/comments/{commentId}")
-    public Response<Void> deleteComment(@PathVariable Integer postId, @PathVariable Integer commentId, Authentication authentication) {
+    public Response<Void> deleteComment(@PathVariable Long postId, @PathVariable Long commentId, Authentication authentication) {
         reviewCommentService.deleteComment(postId, commentId, authentication.getName());
         return Response.success();
+    }
+
+    @PostMapping("/{postId}/like")
+    public Response<ReviewLikeCountResponse> likeReviewPost(@PathVariable Long postId, Authentication authentication) {
+        ReviewPost reviewPost = reviewPostService.likeReviewPost(postId, authentication.getName());
+        return Response.success(ReviewLikeCountResponse.fromReviewPost(reviewPost));
     }
 }

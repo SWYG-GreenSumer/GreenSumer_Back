@@ -15,7 +15,7 @@ import org.swyg.greensumer.dto.response.*;
 import org.swyg.greensumer.service.StoreService;
 
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/stores")
+@RequestMapping("/api/stores")
 @RestController
 public class StoreController {
 
@@ -29,14 +29,14 @@ public class StoreController {
     }
 
     @PutMapping("/{storeId}")
-    public Response<StoreResponse> modify(@PathVariable Integer storeId, @RequestBody StoreModifyRequest request, Authentication authentication) {
+    public Response<StoreResponse> modify(@PathVariable Long storeId, @RequestBody StoreModifyRequest request, Authentication authentication) {
         Store store = storeService.modify(storeId, request, authentication.getName());
 
         return Response.success(StoreResponse.fromStore(store));
     }
 
     @DeleteMapping("/{storeId}")
-    public Response<Void> delete(@PathVariable Integer storeId, Authentication authentication) {
+    public Response<Void> delete(@PathVariable Long storeId, Authentication authentication) {
         storeService.delete(storeId, authentication.getName());
 
         return Response.success();
@@ -54,7 +54,7 @@ public class StoreController {
     }
 
     @PostMapping("/{storeId}/products")
-    public Response<ProductResponse> registerProduct(@PathVariable Integer storeId, @RequestBody ProductCreateRequest request, Authentication authentication) {
+    public Response<ProductResponse> registerProduct(@PathVariable Long storeId, @RequestBody ProductCreateRequest request, Authentication authentication) {
         Product product = storeService.registerProduct(storeId, request, authentication.getName());
 
         return Response.success(ProductResponse.fromProduct(product));
@@ -62,8 +62,8 @@ public class StoreController {
 
     @PutMapping("/{storeId}/products/{productId}")
     public Response<ProductResponse> modifyProduct(
-            @PathVariable Integer storeId,
-            @PathVariable Integer productId,
+            @PathVariable Long storeId,
+            @PathVariable Long productId,
             @RequestBody ProductModifyRequest request,
             Authentication authentication
     ) {
@@ -73,20 +73,19 @@ public class StoreController {
     }
 
     @DeleteMapping("/{storeId}/products/{productId}")
-    public Response<Void> deleteProduct(@PathVariable Integer storeId, @PathVariable Integer productId, Authentication authentication) {
+    public Response<Void> deleteProduct(@PathVariable Long storeId, @PathVariable Long productId, Authentication authentication) {
         storeService.deleteProduct(storeId, productId, authentication.getName());
 
         return Response.success();
     }
 
     @GetMapping("/{storeId}/products")
-    public Response<Page<StoreProductResponse>> getProductList(@PathVariable Integer storeId, Authentication authentication, Pageable pageable
-    ) {
-        return Response.success(storeService.getProductList(storeId, pageable).map(StoreProductResponse::fromStoreProduct));
+    public Response<Page<StoreProductResponse>> getStoreWithProductList(@PathVariable Long storeId, Pageable pageable) {
+        return Response.success(storeService.getStoreWithProductList(storeId, pageable).map(StoreProductResponse::fromStoreProduct));
     }
 
     @GetMapping("/{storeId}/products/{productId}")
-    public Response<StoreProductResponse> getProduct(@PathVariable Integer storeId, @PathVariable Integer productId, Authentication authentication) {
+    public Response<StoreProductResponse> getProduct(@PathVariable Long storeId, @PathVariable Long productId, Authentication authentication) {
         return Response.success(StoreProductResponse.fromStoreProduct(storeService.getProduct(storeId, productId)));
     }
 }

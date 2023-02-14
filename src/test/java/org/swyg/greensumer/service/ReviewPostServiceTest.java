@@ -15,9 +15,9 @@ import org.swyg.greensumer.domain.UserEntity;
 import org.swyg.greensumer.dto.ReviewPost;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.ProductEntityRepository;
-import org.swyg.greensumer.repository.ReviewPostEntityRepository;
-import org.swyg.greensumer.repository.UserEntityRepository;
+import org.swyg.greensumer.repository.store.ProductEntityRepository;
+import org.swyg.greensumer.repository.review.ReviewPostEntityRepository;
+import org.swyg.greensumer.repository.user.UserEntityRepository;
 
 import java.util.Optional;
 

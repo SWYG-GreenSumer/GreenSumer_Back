@@ -8,7 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.swyg.greensumer.dto.User;
-import org.swyg.greensumer.service.UserService;
+import org.swyg.greensumer.service.UserEntityRepositoryService;
 import org.swyg.greensumer.utils.JwtTokenUtils;
 
 import javax.servlet.FilterChain;
@@ -22,7 +22,7 @@ import java.io.IOException;
 public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final String key;
-    private final UserService userService;
+    private final UserEntityRepositoryService userEntityRepositoryService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -47,7 +47,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
             String username = JwtTokenUtils.getUsername(token, key);
 
-            User user = userService.loadUserByUsername(username);
+            User user = userEntityRepositoryService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     user, null, user.getAuthorities()

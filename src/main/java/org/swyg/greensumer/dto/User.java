@@ -9,9 +9,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.swyg.greensumer.domain.UserEntity;
-import org.swyg.greensumer.domain.constant.UserRole;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,26 +20,31 @@ import java.util.List;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements UserDetails {
-    private Integer id;
+    private Long id;
     private String username;
     private String password;
     private String email;
+    private String fullname;
     private String nickname;
-    private Address address;
-    private UserRole role;
+    private LocalDateTime birth;
+    private boolean gender;
+    private String roles;
     private Timestamp registeredAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
 
     public static User fromEntity(UserEntity entity){
+        System.out.println(entity.getRoles());
         return new User(
                 entity.getId(),
                 entity.getUsername(),
                 entity.getPassword(),
                 entity.getEmail(),
+                entity.getFullname(),
                 entity.getNickname(),
-                entity.getRole() == UserRole.SELLER ? Address.fromEntity(entity.getAddressEntity()) : null,
-                entity.getRole(),
+                entity.getBirth(),
+                entity.isGender(),
+                entity.getRoles().toString(),
                 entity.getRegisteredAt(),
                 entity.getUpdatedAt(),
                 entity.getDeletedAt()
@@ -49,7 +54,7 @@ public class User implements UserDetails {
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.getRole().toString()));
+        return List.of(new SimpleGrantedAuthority(this.getRoles()));
     }
 
     @Override @JsonIgnore public boolean isAccountNonExpired() { return this.deletedAt == null; }

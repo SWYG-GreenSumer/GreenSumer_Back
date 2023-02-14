@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.swyg.greensumer.domain.*;
+import org.swyg.greensumer.domain.constant.ImageType;
 import org.swyg.greensumer.domain.constant.StoreType;
 import org.swyg.greensumer.dto.*;
 import org.swyg.greensumer.dto.request.ProductCreateRequest;
@@ -14,9 +15,13 @@ import org.swyg.greensumer.dto.request.StoreCreateRequest;
 import org.swyg.greensumer.dto.request.StoreModifyRequest;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.*;
+import org.swyg.greensumer.repository.store.ProductEntityRepository;
+import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
+import org.swyg.greensumer.repository.store.StoreEntityRepository;
+import org.swyg.greensumer.repository.store.StoreProductEntityRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -26,10 +31,9 @@ public class StoreService {
     private final ProductEntityRepository productEntityRepository;
     private final SellerStoreEntityRepository sellerStoreEntityRepository;
     private final AddressService addressService;
-    private final ImageEntityRepository imageEntityRepository;
     private final StoreProductEntityRepository storeProductEntityRepository;
     private final ImageService imageService;
-    private final UserService userService;
+    private final UserEntityRepositoryService userEntityRepositoryService;
 
     @Transactional
     public Store create(StoreCreateRequest request) {
@@ -50,8 +54,8 @@ public class StoreService {
                 request.getHours()
         );
 
-        if(request.getImages().size() > 0){
-            storeEntity.addImages(imageService.findAllByIdIn(request.getImages()));
+        if (request.getImages().size() > 0) {
+            storeEntity.addImages(imageService.searchImages(request.getImages(), ImageType.STORE).stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList()));
         }
 
         // 4. 가게 정보 반환
@@ -59,28 +63,24 @@ public class StoreService {
     }
 
     @Transactional
-    public Store modify(Integer storeId, StoreModifyRequest request, String username) {
-        User user = userService.loadUserByUsername(username);
+    public Store modify(Long storeId, StoreModifyRequest request, String username) {
+        User user = userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
-        SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
 
-        // 3. 가게 정보 업데이트
-        storeEntity.setStoreType(StoreType.valueOf(request.getType()));
-        storeEntity.setDescription(request.getDescription());
-        storeEntity.setHours(request.getHours());
+        isStoreManager(user.getId(), storeId);
 
-        AddressEntity updatedAddress = addressService.updateAddress(storeEntity.getAddress().getId(), request.getAddress(), request.getRoadname(), request.getLat(), request.getLng());
-        storeEntity.setAddress(updatedAddress);
+        storeEntity.updateStore(request.getType(), request.getDescription(), request.getHours());
+        storeEntity.updateAddress(addressService.updateAddress(storeEntity.getAddress().getId(), request.getAddress(), request.getRoadname(), request.getLat(), request.getLng()));
 
-        if(request.getImages().size() > 0){
-            storeEntity.addImages(imageService.findAllByIdIn(request.getImages()));
+        if (request.getImages().size() > 0) {
+            storeEntity.addImages(imageService.searchImages(request.getImages(), ImageType.STORE).stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList()));
         }
 
         return Store.fromEntity(storeEntity);
     }
 
-    public void delete(Integer storeId, String username) {
-        User user = userService.loadUserByUsername(username);
+    public void delete(Long storeId, String username) {
+        User user = userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
 
@@ -89,28 +89,26 @@ public class StoreService {
     }
 
     public Page<Store> list(Pageable pageable, String username) {
-        userService.loadUserByUsername(username);
+        userEntityRepositoryService.loadUserByUsername(username);
 
         return storeEntityRepository.findAll(pageable).map(Store::fromEntity);
     }
 
     public Page<SellerStore> mylist(Pageable pageable, String username) {
-        User user = userService.loadUserByUsername(username);
+        User user = userEntityRepositoryService.loadUserByUsername(username);
 
         return sellerStoreEntityRepository.findAllBySeller_Id(user.getId(), pageable).map(SellerStore::fromEntity);
     }
 
     @Transactional
-    public Product registerProduct(Integer storeId, ProductCreateRequest request, String username) {
-        User user = userService.loadUserByUsername(username);
+    public Product registerProduct(Long storeId, ProductCreateRequest request, String username) {
+        User user = userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
         ProductEntity productEntity = ProductEntity.of(request.getName(), request.getPrice(), request.getStock(), request.getDescription());
 
-        if(request.getImages().size() != 0){
-            List<ImageEntity> imageEntities = imageEntityRepository.findAllByIdIn(request.getImages());
-
-            productEntity.addImages(imageEntities);
+        if (request.getImages().size() != 0) {
+            productEntity.addImages(imageService.searchImages(request.getImages(), ImageType.PRODUCT).stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList()));
         }
 
         ProductEntity savedEntity = productEntityRepository.save(productEntity);
@@ -123,28 +121,23 @@ public class StoreService {
     }
 
     @Transactional
-    public Product modifyProduct(Integer storeId, Integer productId, ProductModifyRequest request, String username) {
-        User user = userService.loadUserByUsername(username);
+    public Product modifyProduct(Long storeId, Long productId, ProductModifyRequest request, String username) {
+        User user = userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
         ProductEntity productEntity = getProductEntityOrException(productId);
-        StoreProductEntity storeProductEntity = getStoreProductOrException(storeId, productId);
 
-        productEntity.setName(request.getName());
-        productEntity.setDescription(request.getDescription());
-        productEntity.setPrice(request.getPrice());
-        productEntity.setStock(request.getStock());
+        productEntity.updateProductInfo(request.getName(), request.getDescription(), request.getPrice(), request.getStock());
 
-        if(request.getImages().size() > 0){
-            productEntity.addImages(imageService.findAllByIdIn(request.getImages()));
-        }
+        if (request.getImages().size() > 0)
+            productEntity.addImages(imageService.searchImages(request.getImages(), ImageType.PRODUCT).stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList()));
 
         return Product.fromEntity(productEntity);
     }
 
     @Transactional
-    public void deleteProduct(Integer storeId, Integer productId, String username) {
-        User user = userService.loadUserByUsername(username);
+    public void deleteProduct(Long storeId, Long productId, String username) {
+        User user = userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
         ProductEntity productEntity = getProductEntityOrException(productId);
@@ -155,15 +148,13 @@ public class StoreService {
         productEntityRepository.delete(productEntity);
     }
 
-    public Page<StoreProduct> getProductList(Integer storeId, Pageable pageable) {
+    public Page<StoreProduct> getStoreWithProductList(Long storeId, Pageable pageable) {
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
 
         return storeProductEntityRepository.findAllByStore(storeEntity, pageable).map(StoreProduct::fromEntity);
     }
 
-    public StoreProduct getProduct(Integer storeId, Integer productId) {
-        StoreEntity storeEntity = getStoreEntityOrException(storeId);
-        ProductEntity productEntity = getProductEntityOrException(productId);
+    public StoreProduct getProduct(Long storeId, Long productId) {
         StoreProductEntity storeProductEntity = getStoreProductOrException(storeId, productId);
 
         return StoreProduct.fromEntity(storeProductEntity);
@@ -175,28 +166,37 @@ public class StoreService {
         });
     }
 
-    public ProductEntity getProductEntityOrException(Integer productId){
+    public ProductEntity getProductEntityOrException(Long productId) {
         return productEntityRepository.findById(productId).orElseThrow(() -> {
             throw new GreenSumerBackApplicationException(ErrorCode.PRODUCT_NOT_FOUND, String.format("%s not founded", productId));
         });
     }
 
-    public StoreEntity getStoreEntityOrException(Integer storeId){
+    public StoreEntity getStoreEntityOrException(Long storeId) {
         return storeEntityRepository.findById(storeId).orElseThrow(() -> {
             throw new GreenSumerBackApplicationException(ErrorCode.STORE_NOT_FOUND, String.format("%s not founded", storeId));
         });
     }
 
-    private SellerStoreEntity isStoreManager(Integer userId, Integer storeId) {
+    public SellerStoreEntity isStoreManager(Long userId, Long storeId) {
         return sellerStoreEntityRepository.findBySeller_IdAndStore_Id(userId, storeId).orElseThrow(() -> {
             throw new GreenSumerBackApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", userId, storeId));
         });
     }
 
-    private StoreProductEntity getStoreProductOrException(Integer storeId, Integer productId) {
+    private StoreProductEntity getStoreProductOrException(Long storeId, Long productId) {
         return storeProductEntityRepository.findByStore_IdAndProduct_Id(storeId, productId).orElseThrow(() -> {
             throw new GreenSumerBackApplicationException(ErrorCode.PRODUCT_NOT_FOUND_ON_STORE, String.format("%s not founded on Store #%s", productId, storeId));
         });
+    }
+
+    public List<ProductEntity> getStoreWithProductList(List<Long> productsId) {
+        return productEntityRepository.findAllByIdIn(productsId);
+    }
+
+    public List<ProductEntity> getProductListOnStore(List<Long> productsId, Long storeId) {
+        return storeProductEntityRepository.findAllByStore_IdAndProductIn(storeId, productsId)
+                .stream().map(StoreProductEntity::getProduct).collect(Collectors.toList());
     }
 
 }

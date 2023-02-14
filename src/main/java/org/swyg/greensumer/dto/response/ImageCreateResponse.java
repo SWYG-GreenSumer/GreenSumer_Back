@@ -3,7 +3,6 @@ package org.swyg.greensumer.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.swyg.greensumer.domain.constant.ImageType;
 import org.swyg.greensumer.dto.Image;
 
 import java.sql.Timestamp;
@@ -12,9 +11,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageCreateResponse {
-
-    private Integer id;
-    private ImageType imageType;
+    private Long id;
     private String originFilename;
     private String savedFilename;
     private byte[] imageData;
@@ -25,7 +22,6 @@ public class ImageCreateResponse {
     public static ImageCreateResponse fromImage(Image image){
         return new ImageCreateResponse(
                 image.getId(),
-                image.getImageType(),
                 image.getOriginFilename(),
                 image.getSavedFilename(),
                 image.getImageData(),

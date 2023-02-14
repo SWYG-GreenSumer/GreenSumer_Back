@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 public class Address {
     private Long id;
     private String address;
-    private String roadname;
+    private String roadName;
     private Double lat;
     private Double lng;
     private Timestamp registeredAt;

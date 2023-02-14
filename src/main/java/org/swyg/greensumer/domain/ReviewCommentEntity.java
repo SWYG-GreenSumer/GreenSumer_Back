@@ -1,43 +1,28 @@
 package org.swyg.greensumer.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
-import java.sql.Timestamp;
-import java.time.Instant;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.util.Objects;
 
-@Setter
+@Builder
+@AllArgsConstructor
 @Getter
 @Entity
 @Table(name = "review_comment")
 @SQLDelete(sql = "UPDATE review_comment SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
-public class ReviewCommentEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class ReviewCommentEntity extends CommentEntity {
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "post_id")
+    @ManyToOne(optional = false) @JoinColumn(name = "review_id")
     private ReviewPostEntity reviewPost;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
-
-    @Column(name = "content", columnDefinition = "TEXT")
-    private String content;
-
-    @Column(name = "registered_at") private Timestamp registeredAt;
-    @Column(name = "updated_at")    private Timestamp updatedAt;
-    @Column(name = "deleted_at")    private Timestamp deletedAt;
-
-    @PrePersist void registeredAt() { this.registeredAt = Timestamp.from(Instant.now()); }
-    @PreUpdate  void updatedAt() { this.updatedAt = Timestamp.from(Instant.now()); }
 
     public ReviewCommentEntity() {}
 

@@ -14,10 +14,11 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewPostWithCommentResponse {
-    private Integer id;
+    private Long id;
     private String title;
     private String content;
-    private ProductResponse product;
+    private Integer views;
+    private Set<ProductResponse> products;
     private UserResponse user;
     private Set<ReviewCommentResponse> reviewComments;
     private Timestamp registeredAt;
@@ -29,7 +30,10 @@ public class ReviewPostWithCommentResponse {
                 postWithComment.getId(),
                 postWithComment.getTitle(),
                 postWithComment.getContent(),
-                ProductResponse.fromProduct(postWithComment.getProduct()),
+                postWithComment.getViews(),
+                postWithComment.getProducts().stream()
+                        .map(ProductResponse::fromProduct)
+                        .collect(Collectors.toUnmodifiableSet()),
                 UserResponse.fromUser(postWithComment.getUser()),
                 postWithComment.getReviewComments().stream()
                         .map(ReviewCommentResponse::fromReviewComment)

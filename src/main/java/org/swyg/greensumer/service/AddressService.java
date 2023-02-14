@@ -2,6 +2,7 @@ package org.swyg.greensumer.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.swyg.greensumer.domain.AddressEntity;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
@@ -15,7 +16,7 @@ public class AddressService {
 
     public AddressEntity findAddressEntity(String address, String roadname, Double latitude, Double longitude) {
         return addressEntityRepository.findByLatitudeAndLongitude(latitude, longitude).orElseGet(
-                () -> addressEntityRepository.save(AddressEntity.of(address, roadname, latitude, longitude))
+                () -> addressEntityRepository.save(AddressEntity.builder().address(address).roadname(roadname).latitude(latitude).longitude(longitude).build())
         );
     }
 
@@ -23,15 +24,10 @@ public class AddressService {
         return addressEntityRepository.findById(id).orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.ADDRESS_NOT_FOUND, String.format("%s not founded", id)));
     }
 
+    @Transactional
     public AddressEntity updateAddress(Long id, String address, String roadname, double latitude, double longitude) {
-        // 유효성 검사
         AddressEntity addressEntity = searchAddress(id);
 
-        addressEntity.setAddress(address);
-        addressEntity.setRoadname(roadname);
-        addressEntity.setLatitude(latitude);
-        addressEntity.setLongitude(longitude);
-
-        return addressEntity;
+        return addressEntity.updateAddress(address, roadname, latitude, longitude);
     }
 }
