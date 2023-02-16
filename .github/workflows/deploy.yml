@@ -12,8 +12,9 @@ jobs:
       - name: Connect deploy key
         uses: cloudtype-github-actions/connect@v1
         with:
-          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          token: ${{ secrets.CLOUDTYPE_TOKEN1 }}
           ghtoken: ${{ secrets.GHP_TOKEN1 }}
+          scope: greensumer
       - name: Deploy
         uses: cloudtype-github-actions/deploy@v1
         with:
@@ -25,8 +26,8 @@ jobs:
             app: java@17
             options:
               env:
-                - name: DB_HOST
-                  secret : DB_HOST
+                - name: DB_URL
+                  secret : DB_URL
                 - name: DB_USERNAME
                   secret : DB_USERNAME
                 - name: JWT_EXPIRED_TIME_MS
