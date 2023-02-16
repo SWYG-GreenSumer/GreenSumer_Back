@@ -18,6 +18,8 @@ public class Store {
     private String description;
     private Address address;
     private String hours;
+    private String phone;
+    private String url;
     private Set<Image> logos;
     private Timestamp registeredAt;
     private Timestamp updatedAt;
@@ -30,6 +32,8 @@ public class Store {
                 entity.getDescription(),
                 Address.fromEntity(entity.getAddress()),
                 entity.getHours(),
+                entity.getPhone(),
+                entity.getUrl(),
                 entity.getLogos().stream()
                         .map(Image::fromEntity)
                         .collect(Collectors.toUnmodifiableSet()),

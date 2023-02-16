@@ -18,6 +18,7 @@ public class ReviewPostResponse {
     private Set<ProductResponse> products;
     private String title;
     private String content;
+    private String scope;
     private Integer views;
     private Timestamp registeredAt;
     private Timestamp updatedAt;
@@ -32,6 +33,7 @@ public class ReviewPostResponse {
                         .collect(Collectors.toUnmodifiableSet()),
                 reviewPost.getTitle(),
                 reviewPost.getContent(),
+                reviewPost.getScope(),
                 reviewPost.getViews(),
                 reviewPost.getRegisteredAt(),
                 reviewPost.getUpdatedAt(),

@@ -12,6 +12,7 @@ public class ReviewPostsResponse {
     private Long id;
     private String title;
     private String nickname;
+    private String scope;
     private int views;
     private int likes;
     private int comments;
@@ -22,6 +23,7 @@ public class ReviewPostsResponse {
         return ReviewPostsResponse.builder()
                 .title(reviewPost.getTitle())
                 .nickname(reviewPost.getUser().getNickname())
+                .scope(reviewPost.getScope())
                 .views(reviewPost.getViews())
                 .likes(reviewPost.getLikes())
                 .comments(reviewPost.getComments().size())

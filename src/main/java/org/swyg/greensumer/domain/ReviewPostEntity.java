@@ -40,18 +40,21 @@ public class ReviewPostEntity extends PostEntity {
     @ToString.Exclude
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<ReviewPostLikeEntity> likes = new LinkedHashSet<>();
+    
+    private String scope;
 
     public ReviewPostEntity() {
     }
 
-    private ReviewPostEntity(UserEntity user, String title, String content) {
+    private ReviewPostEntity(UserEntity user, String title, String content, String scope) {
         this.user = user;
         this.title = title;
         this.content = content;
+        this.scope = scope;
     }
 
-    public static ReviewPostEntity of(UserEntity user, String title, String content) {
-        return new ReviewPostEntity(user, title, content);
+    public static ReviewPostEntity of(UserEntity user, String title, String content, String scpoe) {
+        return new ReviewPostEntity(user, title, content, scpoe);
     }
 
     public void addImages(Collection<ReviewImageEntity> images) {
@@ -95,9 +98,10 @@ public class ReviewPostEntity extends PostEntity {
         return Objects.hash(this.getId());
     }
 
-    public void updateReviewPost(String title, String content, Collection<ProductEntity> productEntities) {
+    public void updateReviewPost(String title, String content, String scope, Collection<ProductEntity> productEntities) {
         this.title = title;
         this.content = content;
+        this.scope = scope;
         addProducts(productEntities);
     }
 

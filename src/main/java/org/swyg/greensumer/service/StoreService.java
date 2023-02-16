@@ -51,7 +51,9 @@ public class StoreService {
                 request.getDescription(),
                 StoreType.valueOf(request.getType()),
                 addressEntity,
-                request.getHours()
+                request.getHours(),
+                request.getPhone(),
+                request.getUrl()
         );
 
         if (request.getImages().size() > 0) {
@@ -69,7 +71,7 @@ public class StoreService {
 
         isStoreManager(user.getId(), storeId);
 
-        storeEntity.updateStore(request.getType(), request.getDescription(), request.getHours());
+        storeEntity.updateStore(request.getType(), request.getDescription(), request.getHours(), request.getPhone(), request.getUrl());
         storeEntity.updateAddress(addressService.updateAddress(storeEntity.getAddress().getId(), request.getAddress(), request.getRoadname(), request.getLat(), request.getLng()));
 
         if (request.getImages().size() > 0) {

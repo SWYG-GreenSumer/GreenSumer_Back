@@ -42,7 +42,8 @@ public class ReviewPostService {
         ReviewPostEntity reviewPostEntity = reviewPostEntityRepository.save(ReviewPostEntity.of(
                 userEntity,
                 request.getTitle(),
-                request.getContent()
+                request.getContent(),
+                request.getScope()
         ));
 
         if(productEntities.size() > 0){
@@ -59,7 +60,7 @@ public class ReviewPostService {
 
         List<ProductEntity> productEntities = storeService.getProductListOnStore(request.getProducts(), request.getStoreId());
 
-        reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), productEntities);
+        reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), request.getScope(), productEntities);
 
         addImages(request.getImages(), reviewPostEntity);
 

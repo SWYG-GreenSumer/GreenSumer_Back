@@ -9,6 +9,7 @@ import org.swyg.greensumer.dto.ReviewPost;
 public class ReviewNewPostResponse {
     private String title;
     private String nickname;
+    private String scope;
     private int views;
     private int likes;
 
@@ -16,6 +17,7 @@ public class ReviewNewPostResponse {
         return ReviewNewPostResponse.builder()
                 .title(reviewPost.getTitle())
                 .nickname(reviewPost.getUser().getNickname())
+                .scope(reviewPost.getScope())
                 .views(reviewPost.getViews())
                 .likes(reviewPost.getLikes())
                 .build();

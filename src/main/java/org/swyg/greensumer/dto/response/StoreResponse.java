@@ -18,6 +18,8 @@ public class StoreResponse {
     private String description;
     private String address;
     private String hours;
+    private String phone;
+    private String url;
     private Double lat;
     private Double lng;
     private Set<Image> images;
@@ -32,6 +34,8 @@ public class StoreResponse {
                 store.getDescription(),
                 store.getAddress().getAddress(),
                 store.getHours(),
+                store.getPhone(),
+                store.getUrl(),
                 store.getAddress().getLat(),
                 store.getAddress().getLng(),
                 store.getLogos(),

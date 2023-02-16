@@ -28,6 +28,8 @@ public class StoreEntity extends DateTimeEntity {
     private Long id;
 
     @Column(name = "name", length = 30) private String name;
+    @Column(name = "phone", length = 30) private String phone;
+    @Column(name = "url") private String url;
 
     @Column(name = "description", columnDefinition = "TEXT") private String description;
 
@@ -49,16 +51,18 @@ public class StoreEntity extends DateTimeEntity {
 
     public StoreEntity(){}
 
-    private StoreEntity(String name, String description, StoreType storeType, AddressEntity address, String hours) {
+    private StoreEntity(String name, String description, StoreType storeType, AddressEntity address, String hours, String url, String phone) {
         this.name = name;
         this.description = description;
         this.storeType = storeType;
         this.address = address;
         this.hours = hours;
+        this.phone = phone;
+        this.url = url;
     }
 
-    public static StoreEntity of(String name, String description, StoreType storeType, AddressEntity address, String hours) {
-        return new StoreEntity(name, description, storeType, address, hours);
+    public static StoreEntity of(String name, String description, StoreType storeType, AddressEntity address, String hours, String url, String phone) {
+        return new StoreEntity(name, description, storeType, address, hours, url, phone);
     }
 
     // SellerStore
@@ -125,10 +129,12 @@ public class StoreEntity extends DateTimeEntity {
         return Objects.hash(this.getId());
     }
 
-    public void updateStore(String type, String description, String hours) {
+    public void updateStore(String type, String description, String hours, String phone, String url) {
         this.storeType = StoreType.valueOf(type);
         this.description = description;
         this.hours = hours;
+        this.phone = phone;
+        this.url = url;
     }
 
     public void updateAddress(AddressEntity address) {
