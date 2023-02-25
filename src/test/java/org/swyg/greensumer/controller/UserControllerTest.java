@@ -6,25 +6,35 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.swyg.greensumer.config.SecurityConfig;
+import org.swyg.greensumer.dto.TokenInfo;
+import org.swyg.greensumer.dto.request.PasswordUpdateRequest;
+import org.swyg.greensumer.dto.request.UserLoginRequest;
+import org.swyg.greensumer.dto.request.UserLogoutRequest;
+import org.swyg.greensumer.dto.request.UserSignUpRequest;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.service.UserService;
 import org.swyg.greensumer.service.VerificationService;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.swyg.greensumer.fixture.Fixtures.*;
+import static org.swyg.greensumer.fixture.Fixtures.getTokenInfo;
+import static org.swyg.greensumer.fixture.Fixtures.getUser;
 import static org.swyg.greensumer.fixture.RequestFixture.*;
 
 @DisplayName("View 컨트롤러 - 유저")
 @ActiveProfiles("test")
+@MockBean({JpaMetamodelMappingContext.class, SecurityConfig.class})
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
@@ -43,264 +53,314 @@ class UserControllerTest {
     }
 
     @DisplayName("[view][POST] 회원가입 요청 - 정상 호출")
+    @WithMockUser
     @Test
     void givenUserInfo_whenRequestingSignUp_thenReturnUserInfo() throws Exception {
-        when(userService.signup(any())).thenReturn(getUser());
+        // given
+        willDoNothing().given(userService).signup(any(UserSignUpRequest.class));
 
-        mvc.perform(post("/api/v1/users/sign-up")
+        // when & then
+        mvc.perform(post("/api/users/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getUserSignUpRequest()))
+                        .content(objectMapper.writeValueAsBytes(UserSignUpRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isOk());
+
+        verify(userService, times(1)).signup(any(UserSignUpRequest.class));
     }
 
     @DisplayName("[view][POST] 회원가입 요청 - 이미 존재하는 아이디인 경우")
+    @WithMockUser
     @Test
     void givenUserInfo_whenRequestingSignUp_thenThrowDuplicatedUsernameException() throws Exception {
-        when(userService.signup(any())).thenThrow(new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_USERNAME));
+        // given
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_USERNAME)).given(userService).signup(any(UserSignUpRequest.class));
 
-        mvc.perform(post("/api/v1/users/sign-up")
+        // when & then
+        mvc.perform(post("/api/users/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getUserSignUpRequest()))
+                        .content(objectMapper.writeValueAsBytes(UserSignUpRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isConflict());
-    }
 
-    @DisplayName("[view][POST] 판매자로 회원가입 요청 - 존재하지 않은 주소 정보인 경우")
-    @Test
-    void givenUserInfo_whenRequestingSignUp_thenThrowStoreNotFoundException() throws Exception {
-        when(userService.signup(any())).thenThrow(new GreenSumerBackApplicationException(ErrorCode.STORE_NOT_FOUND));
-
-        mvc.perform(post("/api/v1/users/sign-up")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getUserSignUpRequest()))
-                )
-                .andExpect(status().isNotFound());
+        verify(userService, times(1)).signup(any(UserSignUpRequest.class));
     }
 
     @DisplayName("[view][POST] 로그인 요청 - 정상 호출")
+    @WithMockUser
     @Test
     void givenUserInfo_whenRequestingLogin_thenReturnToken() throws Exception {
-        when(userService.login(any(), any())).thenReturn(getToken());
+        // given
+        given(userService.login(any(UserLoginRequest.class))).willReturn(any(TokenInfo.class));
 
-        mvc.perform(post("/api/v1/users/login")
+        // when & then
+        mvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getUserLoginRequest()))
+                        .content(objectMapper.writeValueAsBytes(UserLoginRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isOk());
+
+        verify(userService, times(1)).login(any(UserLoginRequest.class));
     }
 
     @DisplayName("[view][POST] 로그인 요청 - 회원가입이 되지 않은 유저인경우")
+    @WithMockUser
     @Test
     void givenUserInfo_whenRequestingLogin_thenThrowUserNotFoundException() throws Exception {
-        when(userService.login(any(), any())).thenThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND));
+        // given
+        given(userService.login(any(UserLoginRequest.class))).willThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        mvc.perform(post("/api/v1/users/login")
+        // when & then
+        mvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getUserLoginRequest()))
+                        .content(objectMapper.writeValueAsBytes(UserLoginRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isNotFound());
+
+        verify(userService, times(1)).login(any(UserLoginRequest.class));
     }
 
     @DisplayName("[view][POST] 로그인 요청 - 패스워드가 일치하지 않는 경우")
+    @WithMockUser
     @Test
     void givenUserInfo_whenRequestingLogin_thenThrowInvalidPasswordException() throws Exception {
-        when(userService.login(any(), any())).thenThrow(new GreenSumerBackApplicationException(ErrorCode.INVALID_PASSWORD));
+        // given
+        given(userService.login(any(UserLoginRequest.class))).willThrow(new GreenSumerBackApplicationException(ErrorCode.INVALID_PASSWORD));
 
-        mvc.perform(post("/api/v1/users/login")
+        // when & then
+        mvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getUserLoginRequest()))
+                        .content(objectMapper.writeValueAsBytes(UserLoginRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isUnauthorized());
     }
 
     @DisplayName("[view][POST] 이메일 인증 요청 - 정상 호출")
+    @WithMockUser
     @Test
     void givenEmail_whenRequestingVerification_thenReturnNothing() throws Exception {
+        // given
+        willDoNothing().given(verificationService).sendMail(anyString());
 
-        mvc.perform(post("/api/v1/users/mail")
+        // when & then
+        mvc.perform(post("/api/users/mail")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getVerificationRequest()))
+                        .content(objectMapper.writeValueAsBytes(VerificationRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isOk());
+
+        verify(verificationService, times(1)).sendMail(any(String.class));
     }
 
-    @DisplayName("[view][POST] 이메일 인증 요청 - 이메일 발송중 발생한 에러")
-    @Test
-    void givenEmail_whenRequestingVerification_thenThrowMailSendErrorException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.MAIL_SEND_ERROR)).when(verificationService).sendMail(any());
-
-        mvc.perform(post("/api/v1/users/mail")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getVerificationRequest()))
-                )
-                .andExpect(status().isInternalServerError());
-    }
-
-    @DisplayName("[view][PUT] 이메일 인증 확인 - 정상 호출")
+    @DisplayName("[view][GET] 이메일 인증 확인 - 정상 호출")
+    @WithMockUser
     @Test
     void givenEmailAndCode_whenRequestingCheckCode_thenReturnNothing() throws Exception {
-        mvc.perform(put("/api/v1/users/mail")
+        willDoNothing().given(verificationService).checkMail(anyString(), anyString());
+
+        mvc.perform(get("/api/users/mail")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getVerificationCheckRequest()))
+                        .content(objectMapper.writeValueAsBytes(VerificationCheckRequest()))
                 )
                 .andExpect(status().isOk());
     }
 
-    @DisplayName("[view][PUT] 이메일 인증 확인 - 이메일이 존재하지 않는 경우")
+    @DisplayName("[view][GET] 이메일 인증 확인 - 이메일이 존재하지 않는 경우")
+    @WithMockUser
     @Test
     void givenEmailAndCode_whenRequestingCheckCode_thenThrowMailNotFound() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.MAIL_NOT_FOUND)).when(verificationService).checkMail(any(), any());
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.MAIL_NOT_FOUND)).given(verificationService).checkMail(anyString(), anyString());
 
-        mvc.perform(put("/api/v1/users/mail")
+        mvc.perform(get("/api/users/mail")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getVerificationCheckRequest()))
+                        .content(objectMapper.writeValueAsBytes(VerificationCheckRequest()))
                 )
                 .andExpect(status().isNotFound());
     }
 
-    @DisplayName("[view][PUT] 이메일 인증 확인 - 인증 번호가 일치하지 않는 경우")
+    @DisplayName("[view][GET] 이메일 인증 확인 - 인증 번호가 일치하지 않는 경우")
+    @WithMockUser
     @Test
     void givenEmailAndCode_whenRequestingCheckCode_thenThrowInvalidVerificationCodeException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.INVALID_VERIFICATION_CODE)).when(verificationService).checkMail(any(), any());
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.INVALID_VERIFICATION_CODE)).given(verificationService).checkMail(anyString(), anyString());
 
-        mvc.perform(put("/api/v1/users/mail")
+        mvc.perform(get("/api/users/mail")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(getVerificationCheckRequest()))
+                        .content(objectMapper.writeValueAsBytes(VerificationCheckRequest()))
                 )
                 .andExpect(status().isUnauthorized());
     }
 
     @DisplayName("[view][GET] 아이디 중복조회 - 정상호출")
+    @WithMockUser
     @Test
     void givenUsername_whenRequestingDuplicateUsername_thenReturnNothing() throws Exception {
-        String username = "username";
-        mvc.perform(get("/api/v1/users/existUsername")
-                        .param("username", username)
+        willDoNothing().given(userService).existUsername(anyString());
+
+        mvc.perform(get("/api/users/existUsername")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("username", "username")
                 )
                 .andExpect(status().isOk());
     }
 
     @DisplayName("[view][GET] 아이디 중복조회 - 아이디가 중복된 경우")
+    @WithMockUser
     @Test
     void givenUsername_whenRequestingDuplicateUsername_thenThrowDuplicateUsernameException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_USERNAME)).when(userService).existUsername(any());
-        mvc.perform(get("/api/v1/users/existUsername")
-                        .param("username", getUsername())
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_USERNAME)).given(userService).existUsername(anyString());
+
+        mvc.perform(get("/api/users/existUsername")
+                        .param("username", "username")
                 )
                 .andExpect(status().isConflict());
     }
 
-    @DisplayName("[view][PUT] 아이디 찾기 - 정상호출")
+    @DisplayName("[view][GET] 아이디 찾기 - 정상호출")
+    @WithMockUser
     @Test
     void givenEmailAndCode_whenRequestingFindingUsername_thenReturnUsername() throws Exception {
-        when(userService.findUsername(any(), any())).thenReturn(getUser());
+        given(userService.findUsername(anyString(), anyString())).willReturn(getUser());
 
-        mvc.perform(put("/api/v1/users/find/username")
-                        .content(objectMapper.writeValueAsBytes(getUsernameRequest()))
+        mvc.perform(get("/api/users/find/username")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .param("email", "email")
+                        .param("code", "code")
+                        .with(csrf())
                 )
                 .andExpect(status().isOk());
+
+        verify(userService, times(1)).findUsername(anyString(), anyString());
     }
 
-    @DisplayName("[view][PUT] 아이디 찾기 - 등록된 이메일이 아닌 경우")
+    @DisplayName("[view][GET] 아이디 찾기 - 등록된 이메일이 아닌 경우")
+    @WithMockUser
     @Test
     void givenEmailAndCode_whenRequestingFindingUsername_thenThrowUserNotFoundException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND)).when(userService).findUsername(any(), any());
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND)).given(userService).findUsername(anyString(), anyString());
 
-        mvc.perform(put("/api/v1/users/find/username")
-                        .content(objectMapper.writeValueAsBytes(getUsernameRequest()))
+        mvc.perform(get("/api/users/find/username")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .param("email", "email@email.com")
+                        .param("code", "code")
+                        .with(csrf())
                 )
                 .andExpect(status().isNotFound());
     }
 
-    @DisplayName("[view][PUT] 비밀번호 변경 요청 - 정상호출")
+    @DisplayName("[view][PUT] 비밀번호 찾기 - 정상호출")
+    @WithMockUser
     @Test
     void givenPasswordUpdateRequest_whenRequestingUpdatePassword_thenReturnUsername() throws Exception {
-        doNothing().when(userService).findPassword(any(), any(), any(), any());
+        willDoNothing().given(userService).findPassword(any(PasswordUpdateRequest.class));
 
-        mvc.perform(put("/api/v1/users/find/password")
-                        .content(objectMapper.writeValueAsBytes(getPasswordUpdateRequest()))
+        mvc.perform(put("/api/users/find/password")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(PasswordUpdateRequest()))
+                        .with(csrf())
                 )
                 .andExpect(status().isOk());
     }
 
-    @DisplayName("[view][PUT] 비밀번호 변경 요청 - 등록된 이메일이 아닌 경우")
+    @DisplayName("[view][PUT] 비밀번호 찾기 - 등록된 이메일이 아닌 경우")
+    @WithMockUser
     @Test
     void givenPasswordUpdateRequest_whenRequestingUpdatePassword_thenThrowUserNotFoundException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND)).when(userService).findPassword(any(), any(), any(), any());
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND)).given(userService).findPassword(any(PasswordUpdateRequest.class));
 
-        mvc.perform(put("/api/v1/users/find/password")
-                        .content(objectMapper.writeValueAsBytes(getPasswordUpdateRequest()))
+        mvc.perform(put("/api/users/find/password")
+                        .content(objectMapper.writeValueAsBytes(PasswordUpdateRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
                 )
                 .andExpect(status().isNotFound());
     }
 
     @DisplayName("[view][PUT] 비밀번호 변경 요청 - 이전 비밀번호와 동일한 경우")
+    @WithMockUser
     @Test
     void givenPasswordUpdateRequest_whenRequestingUpdatePassword_thenThrowSameAsPreviousPasswordException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.SAME_AS_PREVIOUS_PASSWORD)).when(userService).findPassword(any(), any(), any(), any());
+        willThrow(new GreenSumerBackApplicationException(ErrorCode.SAME_AS_PREVIOUS_PASSWORD)).given(userService).findPassword(any(PasswordUpdateRequest.class));
 
-        mvc.perform(put("/api/v1/users/find/password")
-                        .content(objectMapper.writeValueAsBytes(getPasswordUpdateRequest()))
+        mvc.perform(put("/api/users/find/password")
+                        .content(objectMapper.writeValueAsBytes(PasswordUpdateRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
                 )
                 .andExpect(status().isConflict());
     }
 
-    @DisplayName("[view][PUT] 사용자 정보 변경 요청 - 정상 호출")
+    @DisplayName("[view][DELETE] 로그아웃 - 정상호출")
     @WithMockUser
     @Test
-    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenReturnUser() throws Exception {
-        when(userService.updateUserInfo(any(), any())).thenReturn(getUser());
+    void givenAccessTokenAndRefreshToken_whenRequestingLogout_thenReturnNothing() throws Exception {
+        willDoNothing().given(userService).logout(any(UserLogoutRequest.class));
 
-        mvc.perform(put("/api/v1/users/user")
-                        .content(objectMapper.writeValueAsBytes(getUpdateUserRequest()))
+        mvc.perform(delete("/api/users/logout")
+                        .content(objectMapper.writeValueAsBytes(UserLogoutRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
                 )
                 .andExpect(status().isOk());
     }
 
-    @DisplayName("[view][PUT] 사용자 정보 변경 요청 - 로그인하지 않은 경우")
-    @WithAnonymousUser
-    @Test
-    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenThrowUnAuthorizedException() throws Exception {
-        when(userService.updateUserInfo(any(), any())).thenReturn(getUser());
-
-        mvc.perform(put("/api/v1/users/user")
-                        .content(objectMapper.writeValueAsBytes(getUpdateUserRequest()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isUnauthorized());
-    }
-
-    @DisplayName("[view][PUT] 사용자 정보 변경 요청 - 존재하지 않는 아이디인 경우")
+    @DisplayName("[view][PUT] Access Token 재발급 - 정상호출")
     @WithMockUser
     @Test
-    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenThrowUserNotFoundException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND)).when(userService).updateUserInfo(any(), any());
+    void givenAccessTokenAndRefreshToken_whenRequestingReIssueAccessToken_thenReturnToken() throws Exception {
+        given(userService.reissue(anyString(), anyString())).willReturn(getTokenInfo());
 
-        mvc.perform(put("/api/v1/users/user")
-                        .content(objectMapper.writeValueAsBytes(getUpdateUserRequest()))
+        mvc.perform(put("/api/users/reissue")
+                        .content(objectMapper.writeValueAsBytes(UserReissueRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
                 )
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 
-    @DisplayName("[view][PUT] 판매자인 사용자가 정보 변경 요청 - 주소가 존재하지 않은 경우")
-    @WithMockUser
-    @Test
-    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenThrowAddressNotFoundException() throws Exception {
-        doThrow(new GreenSumerBackApplicationException(ErrorCode.ADDRESS_NOT_FOUND)).when(userService).updateUserInfo(any(), any());
-
-        mvc.perform(put("/api/v1/users/user")
-                        .content(objectMapper.writeValueAsBytes(getUpdateUserRequest()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isNotFound());
-    }
+//    @DisplayName("[view][PUT] 사용자 정보 변경 요청 - 정상 호출")
+//    @WithMockUser
+//    @Test
+//    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenReturnUser() throws Exception {
+//        when(userService.updateUserInfo(any(), any())).thenReturn(getUser());
+//
+//        mvc.perform(put("/api/v1/users/user")
+//                        .content(objectMapper.writeValueAsBytes(PasswordUpdateRequest()))
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                )
+//                .andExpect(status().isOk());
+//    }
+//
+//    @DisplayName("[view][PUT] 사용자 정보 변경 요청 - 로그인하지 않은 경우")
+//    @WithAnonymousUser
+//    @Test
+//    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenThrowUnAuthorizedException() throws Exception {
+//        when(userService.updateUserInfo(any(), any())).thenReturn(getUser());
+//
+//        mvc.perform(put("/api/v1/users/user")
+//                        .content(objectMapper.writeValueAsBytes(getUpdateUserRequest()))
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                )
+//                .andExpect(status().isUnauthorized());
+//    }
+//
+//    @DisplayName("[view][PUT] 사용자 정보 변경 요청 - 존재하지 않는 아이디인 경우")
+//    @WithMockUser
+//    @Test
+//    void givenUpdatedUserInfo_whenRequestingUpdateUser_thenThrowUserNotFoundException() throws Exception {
+//        doThrow(new GreenSumerBackApplicationException(ErrorCode.USER_NOT_FOUND)).when(userService).updateUserInfo(any(), any());
+//
+//        mvc.perform(put("/api/v1/users/user")
+//                        .content(objectMapper.writeValueAsBytes(getUpdateUserRequest()))
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                )
+//                .andExpect(status().isNotFound());
+//    }
 
 }

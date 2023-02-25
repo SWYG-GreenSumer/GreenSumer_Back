@@ -37,4 +37,7 @@ public class KakaoAddressSearchService {
         return restTemplate.exchange(uri, HttpMethod.GET, httpEntity, KakaoApiResponseDto.class).getBody();
     }
 
+    public void setKakaoRestApiKey(String kakaoRestApiKey) {
+        this.kakaoRestApiKey = kakaoRestApiKey;
+    }
 }

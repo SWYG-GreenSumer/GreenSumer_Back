@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.swyg.greensumer.dto.Product;
-import org.swyg.greensumer.dto.Store;
 import org.swyg.greensumer.dto.request.ProductCreateRequest;
 import org.swyg.greensumer.dto.request.ProductModifyRequest;
 import org.swyg.greensumer.dto.request.StoreCreateRequest;
@@ -22,17 +21,17 @@ public class StoreController {
     private final StoreService storeService;
 
     @PostMapping
-    public Response<StoreCreateResponse> create(@RequestBody StoreCreateRequest request) {
-        Store store = storeService.create(request);
+    public Response<Void> create(@RequestBody StoreCreateRequest request, Authentication authentication) {
+        storeService.create(request, authentication.getName());
 
-        return Response.success(StoreCreateResponse.fromStore(store));
+        return Response.success();
     }
 
     @PutMapping("/{storeId}")
-    public Response<StoreResponse> modify(@PathVariable Long storeId, @RequestBody StoreModifyRequest request, Authentication authentication) {
-        Store store = storeService.modify(storeId, request, authentication.getName());
+    public Response<Void> modify(@PathVariable Long storeId, @RequestBody StoreModifyRequest request, Authentication authentication) {
+        storeService.modify(storeId, request, authentication.getName());
 
-        return Response.success(StoreResponse.fromStore(store));
+        return Response.success();
     }
 
     @DeleteMapping("/{storeId}")

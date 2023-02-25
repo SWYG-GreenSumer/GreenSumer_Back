@@ -11,7 +11,7 @@ public class UserReissueRequest {
     private String accessToken;
     private String refreshToken;
 
-    public static UserLogoutRequest of(String accessToken, String refreshToken) {
-        return new UserLogoutRequest(accessToken, refreshToken);
+    public static UserReissueRequest of(String accessToken, String refreshToken) {
+        return new UserReissueRequest(accessToken, refreshToken);
     }
 }

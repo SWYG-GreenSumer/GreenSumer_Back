@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.swyg.greensumer.dto.User;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
@@ -15,7 +15,8 @@ public class UserResponse {
     private String username;
     private String nickname;
     private String fullname;
-    private LocalDateTime birth;
+    private String phone;
+    private LocalDate birth;
     private boolean gender;
     private String email;
     private String roles;
@@ -26,6 +27,7 @@ public class UserResponse {
                 user.getUsername(),
                 user.getNickname(),
                 user.getFullname(),
+                user.getPhone(),
                 user.getBirth(),
                 user.isGender(),
                 user.getEmail(),

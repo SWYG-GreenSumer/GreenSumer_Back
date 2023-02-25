@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import org.swyg.greensumer.domain.EventPostEntity;
 import org.swyg.greensumer.domain.constant.EventStatus;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,9 +24,9 @@ public class EventPost {
     private EventStatus eventStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
-    private Timestamp registeredAt;
-    private Timestamp updatedAt;
-    private Timestamp deletedAt;
+    private LocalDateTime registeredAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public static EventPost fromEntity(EventPostEntity entity) {
         return new EventPost(

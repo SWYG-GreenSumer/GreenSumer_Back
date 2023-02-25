@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.swyg.greensumer.domain.*;
 import org.swyg.greensumer.domain.constant.ImageType;
-import org.swyg.greensumer.dto.Image;
 import org.swyg.greensumer.dto.request.ImageModifyRequest;
 import org.swyg.greensumer.dto.request.ImagesCreateRequest;
 import org.swyg.greensumer.exception.ErrorCode;
@@ -16,8 +15,8 @@ import org.swyg.greensumer.utils.ImageUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,42 +33,7 @@ public class ImageService {
     private final StoreImageEntityRepository storeImageEntityRepository;
 
     @Transactional
-    public Image saveImage(MultipartFile image, String type, String username) throws IOException {
-        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
-
-        if (Objects.isNull(image)) {
-            throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_IS_NULL, "Image is Null");
-        }
-
-        String originFilename = image.getOriginalFilename();
-        String savedFilename = getSavedFilename(originFilename);
-
-        validateImageSize(image.getSize(), originFilename);
-
-        ImageEntity imageEntity = null;
-
-        switch (ImageType.valueOf(type)) {
-            case REVIEW -> {
-                imageEntity = reviewImageEntityRepository.save(ReviewImageEntity.builder().userEntity(userEntity).originFilename(originFilename).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-            }
-            case EVENT -> {
-                imageEntity = eventImageEntityRepository.save(EventImageEntity.builder().userEntity(userEntity).originFilename(originFilename).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-            }
-            case STORE -> {
-                imageEntity = storeImageEntityRepository.save(StoreImageEntity.builder().userEntity(userEntity).originFilename(originFilename).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-            }
-            case PRODUCT -> {
-                imageEntity = productImageEntityRepository.save(ProductImageEntity.builder().userEntity(userEntity).originFilename(originFilename).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-            }
-        }
-
-        imageCacheRepository.setImages(ImageType.valueOf(type), List.of(imageEntity));
-
-        return Image.fromEntity(imageEntity);
-    }
-
-    @Transactional
-    public List<Image> saveImages(ImagesCreateRequest request, String type, String username) throws IOException {
+    public void saveImages(ImagesCreateRequest request, String type, String username) throws IOException {
         if (request.getImages().size() > IMAGE_UPLOAD_MAX_COUNT) {
             throw new GreenSumerBackApplicationException(ErrorCode.OVER_IMAGE_COUNT, String.format("Max Image count is 5, but requesting size is %s", request.getImages().size()));
         }
@@ -84,35 +48,26 @@ public class ImageService {
 
             String savedFilename = getSavedFilename(image.getOriginalFilename());
             switch (imageType) {
-                case REVIEW -> imageEntities.add(ReviewImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-                case EVENT -> imageEntities.add(EventImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-                case STORE -> imageEntities.add(StoreImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-                case PRODUCT -> imageEntities.add(ProductImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
-            }
-        }
-
-        switch (imageType) {
-            case REVIEW -> {
-                List<ReviewImageEntity> reviewImageEntities = reviewImageEntityRepository.saveAll(imageEntities.stream().map(ReviewImageEntity::fromImageEntity).collect(Collectors.toList()));
-                imageEntities = reviewImageEntities.stream().map(ReviewImageEntity::fromImageEntity).collect(Collectors.toList());
-            }
-            case EVENT -> {
-                List<EventImageEntity> eventImageEntities = eventImageEntityRepository.saveAll(imageEntities.stream().map(EventImageEntity::fromImageEntity).collect(Collectors.toList()));
-                imageEntities = eventImageEntities.stream().map(EventImageEntity::fromImageEntity).collect(Collectors.toList());
-            }
-            case STORE -> {
-                List<StoreImageEntity> storeImageEntities = storeImageEntityRepository.saveAll(imageEntities.stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList()));
-                imageEntities = storeImageEntities.stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList());
-            }
-            case PRODUCT -> {
-                List<ProductImageEntity> productImageEntities = productImageEntityRepository.saveAll(imageEntities.stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList()));
-                imageEntities = productImageEntities.stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList());
+                case REVIEW -> {
+                    ReviewImageEntity reviewImageEntity = reviewImageEntityRepository.save(ReviewImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
+                    imageEntities.add(reviewImageEntity);
+                }
+                case EVENT -> {
+                    EventImageEntity eventImageEntity = eventImageEntityRepository.save(EventImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
+                    imageEntities.add(eventImageEntity);
+                }
+                case STORE -> {
+                    StoreImageEntity storeImageEntity = storeImageEntityRepository.save(StoreImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
+                    imageEntities.add(storeImageEntity);
+                }
+                case PRODUCT -> {
+                    ProductImageEntity productImageEntity = productImageEntityRepository.save(ProductImageEntity.builder().userEntity(userEntity).originFilename(image.getOriginalFilename()).savedFilename(savedFilename).imageData(ImageUtils.compressImage(image.getBytes())).build());
+                    imageEntities.add(productImageEntity);
+                }
             }
         }
 
         imageCacheRepository.setImages(imageType, imageEntities);
-
-        return imageEntities.stream().map(Image::fromEntity).collect(Collectors.toList());
     }
 
     public byte[] searchImage(Long imageId, String type) {
@@ -122,12 +77,25 @@ public class ImageService {
     }
 
     public List<ImageEntity> searchImages(List<Long> imageIds, ImageType type) {
-        List<ImageEntity> images = imageCacheRepository.getImages(type, imageIds);
 
-        images.forEach(e -> ImageUtils.decompressImage(e.getImageData()));
+        switch (type) {
+            case REVIEW -> {
+                return reviewImageEntityRepository.findAllByIdIn(imageIds).stream().map(ReviewImageEntity::fromImageEntity).collect(Collectors.toList());
+            }
+            case EVENT -> {
+                return eventImageEntityRepository.findAllByIdIn(imageIds).stream().map(EventImageEntity::fromImageEntity).collect(Collectors.toList());
+            }
+            case STORE -> {
+                return storeImageEntityRepository.findAllByIdIn(imageIds).stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList());
+            }
+            case PRODUCT -> {
+                return productImageEntityRepository.findAllByIdIn(imageIds).stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList());
+            }
+        }
 
-        return images;
+        return Collections.emptyList();
     }
+
 
     private void validateImageSize(long size, String originalFilename) {
         if (size >= IMAGE_UPLOAD_MAX_SIZE) {

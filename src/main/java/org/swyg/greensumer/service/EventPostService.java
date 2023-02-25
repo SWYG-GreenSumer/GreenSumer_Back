@@ -101,7 +101,7 @@ public class EventPostService {
 
     @Transactional(readOnly = true)
     public Page<EventPost> myList(String username, Pageable pageable) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         return eventPostEntityRepository.findAllByUser_Id(user.getId(), pageable).map(EventPost::fromEntity);
     }
 

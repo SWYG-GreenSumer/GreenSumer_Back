@@ -9,10 +9,7 @@ import org.hibernate.annotations.Where;
 import org.swyg.greensumer.domain.constant.StoreType;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Builder
 @AllArgsConstructor
@@ -71,19 +68,6 @@ public class StoreEntity extends DateTimeEntity {
         this.sellerStores.add(sellerStoreEntity);
     }
 
-    public void addSellerStores(Collection<SellerStoreEntity> sellerStoreEntities){
-        sellerStoreEntities.forEach(e -> e.setStore(this));
-        this.sellerStores.addAll(sellerStoreEntities);
-    }
-
-    public void removeSellerStore(SellerStoreEntity sellerStoreEntity){
-        this.sellerStores.remove(sellerStoreEntity);
-    }
-
-    public void clearSellerStores(){
-        this.sellerStores.clear();
-    }
-
     // StoreProduct
     public void addStoreProduct(StoreProductEntity storeProductEntity){
         storeProductEntity.setStore(this);
@@ -99,11 +83,7 @@ public class StoreEntity extends DateTimeEntity {
         this.storeProducts.remove(storeProductEntity);
     }
 
-    public void clearStoreProducts(){
-        this.storeProducts.clear();
-    }
-
-    public void addImages(Collection<StoreImageEntity> images) {
+    public void addImages(List<StoreImageEntity> images) {
         images.forEach(e -> e.setStore(this));
         this.logos.clear();
         this.logos.addAll(images);
@@ -113,8 +93,10 @@ public class StoreEntity extends DateTimeEntity {
         this.logos.removeAll(images);
     }
 
-    public void clearImages() {
+    public void clear() {
         this.logos.clear();
+        this.storeProducts.clear();
+        this.sellerStores.clear();
     }
 
     @Override

@@ -3,13 +3,15 @@ package org.swyg.greensumer.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 
-@Getter
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Verification {
     private String subject;
@@ -17,10 +19,8 @@ public class Verification {
     private Timestamp startedAt;
     private Timestamp expiredAt;
 
-    protected Verification() {}
-
     @Builder
-    private Verification(String subject, String code) {
+    public Verification(String subject, String code) {
         this.subject = subject;
         this.code = code;
         this.startedAt = Timestamp.from(Instant.now());

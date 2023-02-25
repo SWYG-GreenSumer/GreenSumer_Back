@@ -33,6 +33,9 @@ public class VerificationCacheRepository {
     }
 
     public void setVerification(Verification verification){
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<Verification>(Verification.class));
+        this.valueOperations = redisTemplate.opsForValue();
+
         if(Objects.isNull(verification)){
             log.error("Required Values must not be null");
             return;
@@ -48,6 +51,9 @@ public class VerificationCacheRepository {
     }
 
     public Optional<Verification> getVerification(String email){
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<Verification>(Verification.class));
+        this.valueOperations = redisTemplate.opsForValue();
+
         String key = getKey(email);
         Verification verification = (Verification) valueOperations.get(key);
         log.info("Get data from Redis {}, {}", key, verification);

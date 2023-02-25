@@ -1,4 +1,4 @@
-package org.swyg.greensumer.config.filter;
+package org.swyg.greensumer.jwt;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.swyg.greensumer.dto.User;
 import org.swyg.greensumer.service.UserEntityRepositoryService;
-import org.swyg.greensumer.utils.JwtTokenUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -47,11 +46,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
             String username = JwtTokenUtils.getUsername(token, key);
 
-            User user = userEntityRepositoryService.loadUserByUsername(username);
+            User user = (User) userEntityRepositoryService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     user, null, user.getAuthorities()
             );
+
+            System.out.println("[authentication]" + authentication.getAuthorities());
 
             // 인증 부가 기능
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

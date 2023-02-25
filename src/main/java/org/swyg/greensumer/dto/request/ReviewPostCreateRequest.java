@@ -13,7 +13,7 @@ public class ReviewPostCreateRequest {
     private Long storeId;
     private String title;
     private String content;
-    private String scope;
+    private String rating;
     private List<Long> products;
     private List<Long> images;
 

@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.swyg.greensumer.domain.ReviewPostEntity;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,21 +17,21 @@ public class ReviewPostWithComment {
     private Long id;
     private String title;
     private String content;
-    private String scope;
+    private String rating;
     private Integer views;
     private Set<Product> products;
     private User user;
     private Set<ReviewComment> reviewComments;
-    private Timestamp registeredAt;
-    private Timestamp updatedAt;
-    private Timestamp deletedAt;
+    private LocalDateTime registeredAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public static ReviewPostWithComment fromEntity(ReviewPostEntity entity) {
         return new ReviewPostWithComment(
                 entity.getId(),
                 entity.getTitle(),
                 entity.getContent(),
-                entity.getScope(),
+                entity.getRating(),
                 entity.getViewer().size(),
                 entity.getProducts().stream()
                         .map(Product::fromEntity)

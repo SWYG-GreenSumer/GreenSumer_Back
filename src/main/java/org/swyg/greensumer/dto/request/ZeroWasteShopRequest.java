@@ -8,9 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ZeroWasteShopRequest {
-    private String address;
+    private String lat;
+    private String lng;
 
-    public static ZeroWasteShopRequest of(String address) {
-        return new ZeroWasteShopRequest(address);
+    public static ZeroWasteShopRequest of(String lat, String lng) {
+        return new ZeroWasteShopRequest(lat, lng);
     }
 }

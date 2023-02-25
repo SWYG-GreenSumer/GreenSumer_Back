@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import org.swyg.greensumer.domain.constant.EventStatus;
 import org.swyg.greensumer.dto.EventPostWithComment;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,9 +26,9 @@ public class EventPostWithCommentResponse {
     private EventStatus eventStatus;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
-    private Timestamp registeredAt;
-    private Timestamp updatedAt;
-    private Timestamp deletedAt;
+    private LocalDateTime registeredAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public static EventPostWithCommentResponse fromEventPostWithComment(EventPostWithComment postWithComment) {
         return new EventPostWithCommentResponse(

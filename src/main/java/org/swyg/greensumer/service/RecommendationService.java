@@ -68,6 +68,24 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
+    public List<RecommendationEntity> buildRecommendationList(double lat, double lng) {
+        return zeroWasterShopEntitySearchService.searchShopDtoList()
+                .stream().map(shop ->
+                        RecommendationEntity.builder()
+                                .inputLatitude(lat)
+                                .inputLongitude(lng)
+                                .targetShopName(shop.getShopName())
+                                .targetAddress(shop.getShopAddress())
+                                .targetLatitude(shop.getLatitude())
+                                .targetLongitude(shop.getLongitude())
+                                .distance(calculateDistance(lat, lng, shop.getLatitude(), shop.getLongitude()))
+                                .build())
+                .filter(recommendation -> recommendation.getDistance() <= RADIUS_KM)
+                .sorted(Comparator.comparing(RecommendationEntity::getDistance))
+                .limit(MAX_SEARCH_COUNT)
+                .collect(Collectors.toList());
+    }
+
     // Haversine formula
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         lat1 = Math.toRadians(lat1);

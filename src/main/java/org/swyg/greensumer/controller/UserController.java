@@ -6,7 +6,6 @@ import org.swyg.greensumer.dto.TokenInfo;
 import org.swyg.greensumer.dto.User;
 import org.swyg.greensumer.dto.request.*;
 import org.swyg.greensumer.dto.response.Response;
-import org.swyg.greensumer.dto.response.UserSignUpResponse;
 import org.swyg.greensumer.dto.response.UsernameResponse;
 import org.swyg.greensumer.service.UserService;
 import org.swyg.greensumer.service.VerificationService;
@@ -20,9 +19,9 @@ public class UserController {
     private final VerificationService verificationService;
 
     @PostMapping("/sign-up")
-    public Response<UserSignUpResponse> signup(@RequestBody UserSignUpRequest request) {
-        User user = userService.signup(request);
-        return Response.success(UserSignUpResponse.fromUser(user));
+    public Response<Void> signup(@RequestBody UserSignUpRequest request) {
+        userService.signup(request);
+        return Response.success();
     }
 
     @PostMapping("/login")
@@ -31,13 +30,13 @@ public class UserController {
         return Response.success(tokens);
     }
 
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     public Response<Void> logout(@RequestBody UserLogoutRequest logout) {
         userService.logout(logout);
         return Response.success();
     }
 
-    @PostMapping("/reissue")
+    @PutMapping("/reissue")
     public Response<TokenInfo> reissue(@RequestBody UserReissueRequest reissue) {
         TokenInfo tokens = userService.reissue(reissue.getAccessToken(), reissue.getRefreshToken());
         return Response.success(tokens);
@@ -64,14 +63,14 @@ public class UserController {
     }
 
     @GetMapping("/find/username")
-    public Response<UsernameResponse> findUsername(@RequestBody UsernameRequest request) {
-        User user = userService.findUsername(request.getEmail(), request.getCode());
+    public Response<UsernameResponse> findUsername(@RequestParam String email, @RequestParam String code) {
+        User user = userService.findUsername(email, code);
         return Response.success(UsernameResponse.of(user));
     }
 
     @PutMapping("/find/password")
     public Response<Void> findPassword(@RequestBody PasswordUpdateRequest request) {
-        userService.findPassword(request.getUsername(), request.getEmail(), request.getCode(), request.getPassword());
+        userService.findPassword(request);
 
         return Response.success();
     }

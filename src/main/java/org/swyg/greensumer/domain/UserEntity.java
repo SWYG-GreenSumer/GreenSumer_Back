@@ -1,15 +1,20 @@
 package org.swyg.greensumer.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import org.swyg.greensumer.domain.constant.UserRole;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Builder
 @ToString(callSuper = true)
@@ -24,7 +29,7 @@ import java.util.Objects;
 })
 @SQLDelete(sql = "UPDATE user SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
-public class UserEntity extends DateTimeEntity {
+public class UserEntity extends DateTimeEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,17 +38,19 @@ public class UserEntity extends DateTimeEntity {
     @Column(nullable = false, length = 50) private String username;
     @Column(nullable = false, length = 50) private String nickname;
     @Column(nullable = false, length = 50) private String fullname;
+    @Column(nullable = false, length = 50) private String phone;
 
     @Column(nullable = false, length = 100) private String email;
 
     @Column(nullable = false) private String password;
 
-    @Column(nullable = false) private LocalDateTime birth;
+    @JsonSerialize(using = LocalDateSerializer.class) @JsonDeserialize(using = LocalDateDeserializer.class)
+    @Column(nullable = false) private LocalDate birth;
     @Column(nullable = false) private boolean gender;
 
     @Column(name = "role") @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
-    private List<String> roles = new ArrayList<>();
+    private Set<UserRole> roles = new LinkedHashSet<>();
 
     @Override
     public boolean equals(Object o) {
@@ -67,7 +74,7 @@ public class UserEntity extends DateTimeEntity {
         this.email = email;
     }
 
-    public void updateRole(String role) {
-        this.roles.add(UserRole.valueOf(role).toString());
+    public void updateRole(UserRole role) {
+        this.roles.add(role);
     }
 }

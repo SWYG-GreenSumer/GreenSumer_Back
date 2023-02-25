@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.swyg.greensumer.dto.Image;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -15,9 +15,9 @@ public class ImageCreateResponse {
     private String originFilename;
     private String savedFilename;
     private byte[] imageData;
-    private Timestamp registeredAt;
-    private Timestamp updatedAt;
-    private Timestamp deletedAt;
+    private LocalDateTime registeredAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public static ImageCreateResponse fromImage(Image image){
         return new ImageCreateResponse(

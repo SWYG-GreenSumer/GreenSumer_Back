@@ -1,4 +1,4 @@
-package org.swyg.greensumer.utils;
+package org.swyg.greensumer.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -40,27 +40,46 @@ public class JwtTokenUtils {
         claims.put("username", user.getUsername());
         long now = (new Date()).getTime();
 
-        // Access Token 생성
-        String accessToken = Jwts.builder()
-                .setSubject(user.getUsername())
-                .setClaims(claims)
-                .setIssuedAt(new Date(now))
-                .setExpiration(new Date(now + ACCESS_TOKEN_EXPIRE_TIME))
-                .signWith(getKey(key), SignatureAlgorithm.HS256)
-                .compact();
-
-        // Refresh Token 생성
-        String refreshToken = Jwts.builder()
-                .setIssuedAt(new Date(now))
-                .setExpiration(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
-                .signWith(getKey(key), SignatureAlgorithm.HS256)
-                .compact();
+        String accessToken = createAccessToken(user.getUsername(), claims, now, key);
+        String refreshToken = createRefreshToken(now, key);
 
         return TokenInfo.builder()
                 .grantType(BEARER_TYPE)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .refreshTokenExpirationTime(REFRESH_TOKEN_EXPIRE_TIME)
+                .build();
+    }
+
+    private static String createRefreshToken(long now, String key) {
+        return Jwts.builder()
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
+                .signWith(getKey(key), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    private static String createAccessToken(String username, Claims claims, long now, String key) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setClaims(claims)
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + ACCESS_TOKEN_EXPIRE_TIME))
+                .signWith(getKey(key), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public static TokenInfo reIssue(org.swyg.greensumer.dto.User user, String key, String refreshToken) {
+        Claims claims = Jwts.claims();
+        claims.put("username", user.getUsername());
+        long now = (new Date()).getTime();
+
+        String accessToken = createAccessToken(user.getUsername(), claims, now, key);
+
+        return TokenInfo.builder()
+                .grantType(BEARER_TYPE)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 }

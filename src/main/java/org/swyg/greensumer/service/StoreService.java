@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.swyg.greensumer.domain.*;
-import org.swyg.greensumer.domain.constant.ImageType;
 import org.swyg.greensumer.domain.constant.StoreType;
 import org.swyg.greensumer.dto.*;
 import org.swyg.greensumer.dto.request.ProductCreateRequest;
@@ -15,6 +14,8 @@ import org.swyg.greensumer.dto.request.StoreCreateRequest;
 import org.swyg.greensumer.dto.request.StoreModifyRequest;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
+import org.swyg.greensumer.repository.images.ProductImageEntityRepository;
+import org.swyg.greensumer.repository.images.StoreImageEntityRepository;
 import org.swyg.greensumer.repository.store.ProductEntityRepository;
 import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
 import org.swyg.greensumer.repository.store.StoreEntityRepository;
@@ -32,13 +33,16 @@ public class StoreService {
     private final SellerStoreEntityRepository sellerStoreEntityRepository;
     private final AddressService addressService;
     private final StoreProductEntityRepository storeProductEntityRepository;
-    private final ImageService imageService;
+    private final ProductImageEntityRepository productImageEntityRepository;
     private final UserEntityRepositoryService userEntityRepositoryService;
+    private final StoreImageEntityRepository storeImageEntityRepository;
 
     @Transactional
-    public Store create(StoreCreateRequest request) {
+    public void create(StoreCreateRequest request, String username) {
         // 1. 주소 확인(없는 경우 주소 정보를 등록하여 반환)
         AddressEntity addressEntity = addressService.findAddressEntity(request.getAddress(), request.getRoadname(), request.getLat(), request.getLat());
+
+        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
 
         // 2. 가게명과 주소가 동일한 가게가 존재할 경우 중복 에러 발생
         storeEntityRepository.findByNameAndAddress(request.getName(), addressEntity).ifPresent(it -> {
@@ -49,7 +53,7 @@ public class StoreService {
         StoreEntity storeEntity = StoreEntity.of(
                 request.getName(),
                 request.getDescription(),
-                StoreType.valueOf(request.getType()),
+                StoreType.valueOf(request.getType().toUpperCase()),
                 addressEntity,
                 request.getHours(),
                 request.getPhone(),
@@ -57,16 +61,19 @@ public class StoreService {
         );
 
         if (request.getImages().size() > 0) {
-            storeEntity.addImages(imageService.searchImages(request.getImages(), ImageType.STORE).stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList()));
+            storeEntity.addImages(storeImageEntityRepository.findAllByIdIn(request.getImages()));
         }
 
-        // 4. 가게 정보 반환
-        return Store.fromEntity(storeEntityRepository.save(storeEntity));
+        StoreEntity storeEntity1 = storeEntityRepository.save(storeEntity);
+
+        SellerStoreEntity sellerStoreEntity = SellerStoreEntity.of(storeEntity1, userEntity);
+        storeEntity.addSellerStore(sellerStoreEntity);
+        sellerStoreEntityRepository.save(sellerStoreEntity);
     }
 
     @Transactional
-    public Store modify(Long storeId, StoreModifyRequest request, String username) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
+    public void modify(Long storeId, StoreModifyRequest request, String username) {
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
 
         isStoreManager(user.getId(), storeId);
@@ -75,18 +82,16 @@ public class StoreService {
         storeEntity.updateAddress(addressService.updateAddress(storeEntity.getAddress().getId(), request.getAddress(), request.getRoadname(), request.getLat(), request.getLng()));
 
         if (request.getImages().size() > 0) {
-            storeEntity.addImages(imageService.searchImages(request.getImages(), ImageType.STORE).stream().map(StoreImageEntity::fromImageEntity).collect(Collectors.toList()));
+            storeEntity.addImages(storeImageEntityRepository.findAllByIdIn(request.getImages()));
         }
-
-        return Store.fromEntity(storeEntity);
     }
 
     public void delete(Long storeId, String username) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
+        storeEntity.clear();
 
-        sellerStoreEntityRepository.deleteAllByStore_Id(storeId);
         storeEntityRepository.deleteById(storeId);
     }
 
@@ -97,20 +102,19 @@ public class StoreService {
     }
 
     public Page<SellerStore> mylist(Pageable pageable, String username) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
-
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         return sellerStoreEntityRepository.findAllBySeller_Id(user.getId(), pageable).map(SellerStore::fromEntity);
     }
 
     @Transactional
     public Product registerProduct(Long storeId, ProductCreateRequest request, String username) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
         ProductEntity productEntity = ProductEntity.of(request.getName(), request.getPrice(), request.getStock(), request.getDescription());
 
         if (request.getImages().size() != 0) {
-            productEntity.addImages(imageService.searchImages(request.getImages(), ImageType.PRODUCT).stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList()));
+            productEntity.addImages(productImageEntityRepository.findAllByIdIn(request.getImages()));
         }
 
         ProductEntity savedEntity = productEntityRepository.save(productEntity);
@@ -124,7 +128,7 @@ public class StoreService {
 
     @Transactional
     public Product modifyProduct(Long storeId, Long productId, ProductModifyRequest request, String username) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
         ProductEntity productEntity = getProductEntityOrException(productId);
@@ -132,14 +136,14 @@ public class StoreService {
         productEntity.updateProductInfo(request.getName(), request.getDescription(), request.getPrice(), request.getStock());
 
         if (request.getImages().size() > 0)
-            productEntity.addImages(imageService.searchImages(request.getImages(), ImageType.PRODUCT).stream().map(ProductImageEntity::fromImageEntity).collect(Collectors.toList()));
+            productEntity.addImages(productImageEntityRepository.findAllByIdIn(request.getImages()));
 
         return Product.fromEntity(productEntity);
     }
 
     @Transactional
     public void deleteProduct(Long storeId, Long productId, String username) {
-        User user = userEntityRepositoryService.loadUserByUsername(username);
+        User user = (User) userEntityRepositoryService.loadUserByUsername(username);
         StoreEntity storeEntity = getStoreEntityOrException(storeId);
         SellerStoreEntity storeManager = isStoreManager(user.getId(), storeId);
         ProductEntity productEntity = getProductEntityOrException(productId);

@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.swyg.greensumer.dto.Image;
 import org.swyg.greensumer.dto.Store;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -21,9 +21,9 @@ public class StoreCreateResponse {
     private Double lat;
     private Double lng;
     private Set<Image> images;
-    private Timestamp registeredAt;
-    private Timestamp updatedAt;
-    private Timestamp deletedAt;
+    private LocalDateTime registeredAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public static StoreCreateResponse fromStore(Store store) {
         return new StoreCreateResponse(

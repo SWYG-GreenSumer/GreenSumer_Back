@@ -4,9 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.swyg.greensumer.api.dto.DocumentDto;
-import org.swyg.greensumer.api.dto.KakaoApiResponseDto;
 import org.swyg.greensumer.api.service.KakaoAddressSearchService;
 import org.swyg.greensumer.domain.RecommendationEntity;
 import org.swyg.greensumer.dto.ZeroWasteShopResponse;
@@ -32,23 +29,22 @@ public class ZeroWasteShopRecommendationService {
     private static final String ROAD_VIEW_BASE_URL = "https://map.kakao.com/link/roadview/";
 
     public List<ZeroWasteShopResponse> recommendZeroWasteShopList(ZeroWasteShopRequest request) {
-        // Convert Address to Latitude And Longitude
-        KakaoApiResponseDto kakaoApiResponseDto = kakaoAddressSearchService.requestAddressSearch(request.getAddress());
 
-        // Validation
-        if (Objects.isNull(kakaoApiResponseDto) || CollectionUtils.isEmpty(kakaoApiResponseDto.getDocumentList())) {
-            log.error("[ZeroWasteShopRecommendationService - recommendZeroWasteShopList Fail] Input address: {}", request.getAddress());
+        if (Objects.isNull(request.getLat()) || Objects.isNull(request.getLng())) {
+            log.error("[ZeroWasteShopRecommendationService - recommendZeroWasteShopList Fail] Current coordinates : {}, {}", request.getLat(), request.getLng());
             return Collections.emptyList();
         }
 
-        DocumentDto documentDto = kakaoApiResponseDto.getDocumentList().get(0);
-        List<RecommendationEntity> recommendations = recommendationService.buildRecommendationList(documentDto);
-        //List<RecommendationEntity> recommendations = recommendationService.buildRecommendationListByCategoryApi(documentDto);
+        List<RecommendationEntity> recommendations = recommendationService.buildRecommendationList(convertToDouble(request.getLat()), convertToDouble(request.getLng()));
 
         return recommendationService.saveAll(recommendations)
                 .stream()
                 .map(this::convertToRecommendation)
                 .collect(Collectors.toList());
+    }
+
+    private double convertToDouble(String value) {
+        return Double.parseDouble(value);
     }
 
     private ZeroWasteShopResponse convertToRecommendation(RecommendationEntity recommendation) {

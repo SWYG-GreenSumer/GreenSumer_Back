@@ -43,7 +43,7 @@ public class ReviewPostService {
                 userEntity,
                 request.getTitle(),
                 request.getContent(),
-                request.getScope()
+                request.getRating()
         ));
 
         if(productEntities.size() > 0){
