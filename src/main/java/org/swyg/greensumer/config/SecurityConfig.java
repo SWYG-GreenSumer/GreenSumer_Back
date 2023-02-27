@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .mvcMatchers("/api/interviews/**").hasRole("ADMIN")
                         .mvcMatchers("/api/stores/**", "api/events").hasRole("SELLER")
                         .antMatchers(HttpMethod.GET, "/api/reviews", "/api/reviews/news").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/stores", "/api/stores/*/products", "/api/stores/*/products/{productId:[\\\\d+]}").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/stores", "/api/stores/*/products", "/api/stores/*/products/{productId:[\\\\d+]}", "/api/images/{imageId:[\\\\d+]}").permitAll()
                         .antMatchers(HttpMethod.GET, "/api/events", "/api/events/news", "/api/interviews").permitAll()
                         .anyRequest().authenticated()
                 )

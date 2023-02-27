@@ -31,7 +31,7 @@ public class Product {
                 entity.getStock(),
                 entity.getDescription(),
                 entity.getImages().stream()
-                        .map(Image::fromEntity)
+                        .map(Image::fromProductImageEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 entity.getRegisteredAt(),
                 entity.getUpdatedAt(),

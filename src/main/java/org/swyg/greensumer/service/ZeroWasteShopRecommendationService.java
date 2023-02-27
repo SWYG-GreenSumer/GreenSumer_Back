@@ -37,8 +37,7 @@ public class ZeroWasteShopRecommendationService {
 
         List<RecommendationEntity> recommendations = recommendationService.buildRecommendationList(convertToDouble(request.getLat()), convertToDouble(request.getLng()));
 
-        return recommendationService.saveAll(recommendations)
-                .stream()
+        return recommendations.stream()
                 .map(this::convertToRecommendation)
                 .collect(Collectors.toList());
     }
@@ -49,10 +48,13 @@ public class ZeroWasteShopRecommendationService {
 
     private ZeroWasteShopResponse convertToRecommendation(RecommendationEntity recommendation) {
         return ZeroWasteShopResponse.builder()
+                .shopId(recommendation.getTargetId())
                 .shopName(recommendation.getTargetShopName())
                 .shopAddress(recommendation.getTargetAddress())
-                .directionUrl(baseUrl + base62Service.encodeDirectionId(recommendation.getId()))
-                .roadViewUrl(ROAD_VIEW_BASE_URL + recommendation.getTargetLatitude() + ", " + recommendation.getTargetLongitude())
+                .shopHours(recommendation.getTargetHours())
+                .shopPhone(recommendation.getTargetPhone())
+                .shopSns(recommendation.getTargetSns())
+                .shopDescription(recommendation.getTargetDescription())
                 .distance(String.format("%.2f km", recommendation.getDistance()))
                 .build();
     }

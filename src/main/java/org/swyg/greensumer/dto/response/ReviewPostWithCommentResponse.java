@@ -20,6 +20,7 @@ public class ReviewPostWithCommentResponse {
     private String rating;
     private Integer views;
     private Set<ProductResponse> products;
+    private Set<ImageResponse> images;
     private UserResponse user;
     private Set<ReviewCommentResponse> reviewComments;
     private LocalDateTime registeredAt;
@@ -35,6 +36,9 @@ public class ReviewPostWithCommentResponse {
                 postWithComment.getViews(),
                 postWithComment.getProducts().stream()
                         .map(ProductResponse::fromProduct)
+                        .collect(Collectors.toUnmodifiableSet()),
+                postWithComment.getImages().stream()
+                        .map(ImageResponse::fromImage)
                         .collect(Collectors.toUnmodifiableSet()),
                 UserResponse.fromUser(postWithComment.getUser()),
                 postWithComment.getReviewComments().stream()

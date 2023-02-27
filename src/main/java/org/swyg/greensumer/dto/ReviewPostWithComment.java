@@ -20,6 +20,7 @@ public class ReviewPostWithComment {
     private String rating;
     private Integer views;
     private Set<Product> products;
+    private Set<Image> images;
     private User user;
     private Set<ReviewComment> reviewComments;
     private LocalDateTime registeredAt;
@@ -35,6 +36,9 @@ public class ReviewPostWithComment {
                 entity.getViewer().size(),
                 entity.getProducts().stream()
                         .map(Product::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
+                entity.getImages().stream()
+                        .map(Image::fromReviewImageEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 User.fromEntity(entity.getUser()),
                 entity.getComments().stream()

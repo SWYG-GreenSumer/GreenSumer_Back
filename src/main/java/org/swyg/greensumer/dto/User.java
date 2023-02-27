@@ -67,10 +67,6 @@ public class User implements UserDetails{
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-
-
-        System.out.println("[ROLE] = " + roles);
-
         if(roles.contains("[") && roles.contains("]")) {
             roles = roles.substring(1, roles.length()-1);
         }
@@ -78,8 +74,6 @@ public class User implements UserDetails{
         for(String role : roles.split(",")){
             authorities.add(new SimpleGrantedAuthority(role.trim()));
         }
-
-        System.out.println("[ROLES]" + authorities);
 
         return authorities;
     }

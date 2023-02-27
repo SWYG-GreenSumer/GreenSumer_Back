@@ -6,11 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.swyg.greensumer.dto.Product;
-import org.swyg.greensumer.dto.request.ProductCreateRequest;
-import org.swyg.greensumer.dto.request.ProductModifyRequest;
-import org.swyg.greensumer.dto.request.StoreCreateRequest;
-import org.swyg.greensumer.dto.request.StoreModifyRequest;
-import org.swyg.greensumer.dto.response.*;
+import org.swyg.greensumer.dto.request.*;
+import org.swyg.greensumer.dto.response.ProductResponse;
+import org.swyg.greensumer.dto.response.Response;
+import org.swyg.greensumer.dto.response.StoreProductResponse;
+import org.swyg.greensumer.dto.response.StoreResponse;
 import org.swyg.greensumer.service.StoreService;
 
 @RequiredArgsConstructor
@@ -46,10 +46,14 @@ public class StoreController {
         return Response.success(storeService.list(pageable, authentication.getName()).map(StoreResponse::fromStore));
     }
 
-    @GetMapping("/my")
-    public Response<Page<SellerStoreResponse>> mylist(Pageable pageable, Authentication authentication) {
+    @GetMapping("/count")
+    public Response<Long> list(Authentication authentication) {
+        return Response.success(storeService.listCount());
+    }
 
-        return Response.success(storeService.mylist(pageable, authentication.getName()).map(SellerStoreResponse::fromSellerStore));
+    @GetMapping("/my")
+    public Response<Page<StoreResponse>> mylist(Pageable pageable, Authentication authentication) {
+        return Response.success(storeService.mylist(pageable, authentication.getName()).map(StoreResponse::fromSellerStore));
     }
 
     @PostMapping("/{storeId}/products")
@@ -87,4 +91,26 @@ public class StoreController {
     public Response<StoreProductResponse> getProduct(@PathVariable Long storeId, @PathVariable Long productId, Authentication authentication) {
         return Response.success(StoreProductResponse.fromStoreProduct(storeService.getProduct(storeId, productId)));
     }
+
+    @PostMapping("/cash")
+    public Response<Void> saveStoreCash(Authentication authentication) {
+        storeService.saveAll();
+        return Response.success();
+    }
+
+    @PutMapping("/{storeId}/images")
+    public Response<Void> saveImagesAtStore(@PathVariable Long storeId, @RequestBody ConnectionImageRequest request, Authentication authentication) {
+        storeService.connectImagesAtStore(storeId, request);
+
+        return Response.success();
+    }
+
+    @PutMapping("/{productId}/images/")
+    public Response<Void> connectImagesAtProduct(@PathVariable Long productId, @RequestBody ConnectionImageRequest request, Authentication authentication) {
+        storeService.connectImagesAtProduct(productId, request);
+
+        return Response.success();
+    }
+
+
 }

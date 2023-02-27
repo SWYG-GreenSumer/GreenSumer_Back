@@ -7,13 +7,14 @@ import org.swyg.greensumer.domain.AddressEntity;
 import org.swyg.greensumer.domain.SellerStoreEntity;
 import org.swyg.greensumer.domain.StoreEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface StoreEntityRepository extends JpaRepository<StoreEntity, Long> {
-    boolean existsByName(String name);
 
+    List<StoreEntity> findAll();
+    Page<StoreEntity> findAll(Pageable pageable);
     Page<StoreEntity> findAllBySellerStores(SellerStoreEntity sellerStoreEntity, Pageable pageable);
-    Optional<StoreEntity> findByName(String name);
 
     Optional<StoreEntity> findByNameAndAddress(String name, AddressEntity address);
     Optional<StoreEntity> findByAddress_Id(Long id);

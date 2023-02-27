@@ -16,6 +16,7 @@ public class ReviewPostResponse {
     private Long id;
     private UserResponse user;
     private Set<ProductResponse> products;
+    private Set<ImageResponse> images;
     private String title;
     private String content;
     private String scope;
@@ -30,6 +31,9 @@ public class ReviewPostResponse {
                 UserResponse.fromUser(reviewPost.getUser()),
                 reviewPost.getProducts().stream()
                         .map(ProductResponse::fromProduct)
+                        .collect(Collectors.toUnmodifiableSet()),
+                reviewPost.getImages().stream()
+                        .map(ImageResponse::fromImage)
                         .collect(Collectors.toUnmodifiableSet()),
                 reviewPost.getTitle(),
                 reviewPost.getContent(),

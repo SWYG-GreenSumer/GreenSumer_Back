@@ -24,8 +24,8 @@ public class StoreEntity extends DateTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", length = 30) private String name;
-    @Column(name = "phone", length = 30) private String phone;
+    @Column(name = "name") private String name;
+    @Column(name = "phone") private String phone;
     @Column(name = "url") private String url;
 
     @Column(name = "description", columnDefinition = "TEXT") private String description;

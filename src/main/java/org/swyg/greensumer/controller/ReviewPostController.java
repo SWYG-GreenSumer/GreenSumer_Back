@@ -43,8 +43,8 @@ public class ReviewPostController {
     }
 
     @GetMapping
-    public Response<Page<ReviewPostsResponse>> list(Pageable pageable) {
-        return Response.success(reviewPostService.list(pageable).map(ReviewPostsResponse::fromReviewPost));
+    public Response<Page<ReviewPostResponse>> list(Pageable pageable) {
+        return Response.success(reviewPostService.list(pageable).map(ReviewPostResponse::fromReviewPost));
     }
 
     @GetMapping("/news")

@@ -21,6 +21,7 @@ public class ReviewPost {
     private String scope;
     private Set<ReviewComment> comments;
     private Set<Product> products;
+    private Set<Image> images;
     private User user;
     private LocalDateTime registeredAt;
     private LocalDateTime updatedAt;
@@ -39,6 +40,9 @@ public class ReviewPost {
                         .collect(Collectors.toUnmodifiableSet()),
                 entity.getProducts().stream()
                         .map(Product::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
+                entity.getImages().stream()
+                        .map(Image::fromReviewImageEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 User.fromEntity(entity.getUser()),
                 entity.getRegisteredAt(),

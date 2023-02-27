@@ -30,7 +30,7 @@ public class ImageController {
     }
 
     @GetMapping("/{imageId}")
-    public ResponseEntity<?> searchImage(@PathVariable Long imageId, @RequestParam(value = "type") String type) {
+    public ResponseEntity<?> searchImage(@PathVariable Long imageId, @RequestParam(value = "type") String type, Authentication authentication) {
         byte[] image = imageService.searchImage(imageId, type);
 
         return ResponseEntity.status(HttpStatus.OK)

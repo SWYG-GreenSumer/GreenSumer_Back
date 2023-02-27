@@ -1,13 +1,15 @@
 package org.swyg.greensumer.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.swyg.greensumer.domain.ImageEntity;
+import org.swyg.greensumer.domain.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Image {
@@ -21,15 +23,47 @@ public class Image {
     private LocalDateTime deletedAt;
 
     public static Image fromEntity(ImageEntity entity) {
-        return new Image(
-                entity.getId(),
-                entity.getUserEntity().getUsername(),
-                entity.getOriginFilename(),
-                entity.getSavedFilename(),
-                entity.getImageData(),
-                entity.getRegisteredAt(),
-                entity.getUpdatedAt(),
-                entity.getDeletedAt()
-        );
+        return Image.builder()
+                .id(entity.getId())
+                .username(entity.getUserEntity().getUsername())
+                .originFilename(entity.getOriginFilename())
+                .savedFilename(entity.getSavedFilename())
+                .build();
+    }
+
+    public static Image fromStoreImageEntity(StoreImageEntity entity) {
+        return Image.builder()
+                .id(entity.getId())
+                .username(entity.getUserEntity().getUsername())
+                .originFilename(entity.getOriginFilename())
+                .savedFilename(entity.getSavedFilename())
+                .build();
+    }
+
+    public static Image fromProductImageEntity(ProductImageEntity entity) {
+        return Image.builder()
+                .id(entity.getId())
+                .username(entity.getUserEntity().getUsername())
+                .originFilename(entity.getOriginFilename())
+                .savedFilename(entity.getSavedFilename())
+                .build();
+    }
+
+    public static Image fromReviewImageEntity(ReviewImageEntity entity) {
+        return Image.builder()
+                .id(entity.getId())
+                .username(entity.getUserEntity().getUsername())
+                .originFilename(entity.getOriginFilename())
+                .savedFilename(entity.getSavedFilename())
+                .build();
+    }
+
+    public static Image fromEventImageEntity(EventImageEntity entity) {
+        return Image.builder()
+                .id(entity.getId())
+                .username(entity.getUserEntity().getUsername())
+                .originFilename(entity.getOriginFilename())
+                .savedFilename(entity.getSavedFilename())
+                .build();
     }
 }

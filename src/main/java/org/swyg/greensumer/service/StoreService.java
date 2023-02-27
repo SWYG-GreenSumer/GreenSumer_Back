@@ -1,6 +1,7 @@
 package org.swyg.greensumer.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -8,22 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.swyg.greensumer.domain.*;
 import org.swyg.greensumer.domain.constant.StoreType;
 import org.swyg.greensumer.dto.*;
-import org.swyg.greensumer.dto.request.ProductCreateRequest;
-import org.swyg.greensumer.dto.request.ProductModifyRequest;
-import org.swyg.greensumer.dto.request.StoreCreateRequest;
-import org.swyg.greensumer.dto.request.StoreModifyRequest;
+import org.swyg.greensumer.dto.request.*;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.repository.images.ProductImageEntityRepository;
 import org.swyg.greensumer.repository.images.StoreImageEntityRepository;
-import org.swyg.greensumer.repository.store.ProductEntityRepository;
-import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
-import org.swyg.greensumer.repository.store.StoreEntityRepository;
-import org.swyg.greensumer.repository.store.StoreProductEntityRepository;
+import org.swyg.greensumer.repository.store.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class StoreService {
@@ -36,11 +32,12 @@ public class StoreService {
     private final ProductImageEntityRepository productImageEntityRepository;
     private final UserEntityRepositoryService userEntityRepositoryService;
     private final StoreImageEntityRepository storeImageEntityRepository;
+    private final StoreCacheRepository storeCacheRepository;
 
     @Transactional
     public void create(StoreCreateRequest request, String username) {
         // 1. 주소 확인(없는 경우 주소 정보를 등록하여 반환)
-        AddressEntity addressEntity = addressService.findAddressEntity(request.getAddress(), request.getRoadname(), request.getLat(), request.getLat());
+        AddressEntity addressEntity = addressService.findAddressEntity(request.getAddress(), request.getRoadname(), request.getLat(), request.getLng());
 
         UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
 
@@ -69,6 +66,8 @@ public class StoreService {
         SellerStoreEntity sellerStoreEntity = SellerStoreEntity.of(storeEntity1, userEntity);
         storeEntity.addSellerStore(sellerStoreEntity);
         sellerStoreEntityRepository.save(sellerStoreEntity);
+
+        storeCacheRepository.save(Store.fromEntity(storeEntity1));
     }
 
     @Transactional
@@ -205,4 +204,43 @@ public class StoreService {
                 .stream().map(StoreProductEntity::getProduct).collect(Collectors.toList());
     }
 
+    public Long listCount() {
+        return storeEntityRepository.count();
+    }
+
+    public List<Store> searchStoreList() {
+        // redis
+        List<Store> storeList = storeCacheRepository.findAll();
+
+        if(!storeList.isEmpty()) {
+            log.info("[StoreService - searchStoreList] redis findAll success!");
+            return storeList;
+        }
+
+        // db
+        return storeEntityRepository.findAll()
+                .stream()
+                .map(Store::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    // TODO: 임시
+    public void saveAll() {
+        // redis
+        storeEntityRepository.findAll().stream().forEach(storeEntity -> storeCacheRepository.save(Store.fromEntity(storeEntity)));
+    }
+
+    @Transactional
+    public void connectImagesAtStore(Long storeId, ConnectionImageRequest request) {
+        StoreEntity storeEntity = getStoreEntityOrException(storeId);
+
+        storeEntity.addImages(storeImageEntityRepository.findAllByIdIn(request.getImages()));
+    }
+
+    @Transactional
+    public void connectImagesAtProduct(Long storeId, ConnectionImageRequest request) {
+        StoreEntity storeEntity = storeEntityRepository.getReferenceById(storeId);
+
+        storeEntity.addImages(storeImageEntityRepository.findAllByIdIn(request.getImages()));
+    }
 }

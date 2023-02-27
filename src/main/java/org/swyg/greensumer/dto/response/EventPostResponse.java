@@ -17,6 +17,7 @@ public class EventPostResponse {
     private Long id;
     private UserResponse user;
     private Set<ProductResponse> product;
+    private Set<ImageResponse> images;
     private String title;
     private String content;
     private Integer views;
@@ -34,6 +35,9 @@ public class EventPostResponse {
                 UserResponse.fromUser(eventPost.getUser()),
                 eventPost.getProducts().stream()
                         .map(ProductResponse::fromProduct)
+                        .collect(Collectors.toUnmodifiableSet()),
+                eventPost.getImages().stream()
+                        .map(ImageResponse::fromImage)
                         .collect(Collectors.toUnmodifiableSet()),
                 eventPost.getTitle(),
                 eventPost.getContent(),

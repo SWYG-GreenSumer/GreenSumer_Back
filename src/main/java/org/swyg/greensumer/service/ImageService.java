@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.swyg.greensumer.domain.*;
 import org.swyg.greensumer.domain.constant.ImageType;
+import org.swyg.greensumer.dto.Image;
 import org.swyg.greensumer.dto.request.ImageModifyRequest;
 import org.swyg.greensumer.dto.request.ImagesCreateRequest;
 import org.swyg.greensumer.exception.ErrorCode;
@@ -14,10 +15,7 @@ import org.swyg.greensumer.repository.images.*;
 import org.swyg.greensumer.utils.ImageUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -71,9 +69,42 @@ public class ImageService {
     }
 
     public byte[] searchImage(Long imageId, String type) {
-       byte[] image = imageCacheRepository.getImage(ImageType.valueOf(type), imageId);
+        ImageType imageType = ImageType.valueOf(type);
 
-       return ImageUtils.decompressImage(image);
+        Image image = imageCacheRepository.getImage(imageType, imageId);
+
+        if(!Objects.isNull(image))
+           return ImageUtils.decompressImage(image.getImageData());
+
+       switch (imageType) {
+           case REVIEW -> {
+               ReviewImageEntity reviewImageEntity = reviewImageEntityRepository.findById(imageId).orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND));
+               imageCacheRepository.setImages(imageType, List.of(reviewImageEntity));
+
+               return ImageUtils.decompressImage(reviewImageEntity.getImageData());
+           }
+           case EVENT -> {
+               EventImageEntity eventImageEntity = eventImageEntityRepository.findById(imageId).orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND));
+               imageCacheRepository.setImages(imageType, List.of(eventImageEntity));
+
+               return ImageUtils.decompressImage(eventImageEntity.getImageData());
+           }
+           case STORE -> {
+               StoreImageEntity storeImageEntity = storeImageEntityRepository.findById(imageId).orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND));
+               imageCacheRepository.setImages(imageType, List.of(storeImageEntity));
+
+               return ImageUtils.decompressImage(storeImageEntity.getImageData());
+           }
+           case PRODUCT -> {
+               ProductImageEntity productImageEntity = productImageEntityRepository.findById(imageId).orElseThrow(() -> new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND));
+               imageCacheRepository.setImages(imageType, List.of(productImageEntity));
+
+               return ImageUtils.decompressImage(productImageEntity.getImageData());
+           }
+           default -> {
+               return null;
+           }
+       }
     }
 
     public List<ImageEntity> searchImages(List<Long> imageIds, ImageType type) {
@@ -95,7 +126,6 @@ public class ImageService {
 
         return Collections.emptyList();
     }
-
 
     private void validateImageSize(long size, String originalFilename) {
         if (size >= IMAGE_UPLOAD_MAX_SIZE) {
@@ -158,6 +188,8 @@ public class ImageService {
             case STORE -> storeImageEntityRepository.deleteById(imageId);
             case PRODUCT -> productImageEntityRepository.deleteById(imageId);
         }
+
+        imageCacheRepository.deleteImage(imageType, imageId);
     }
 
     private static String getSavedFilename(String filename) {

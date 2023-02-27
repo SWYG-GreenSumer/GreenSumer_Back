@@ -21,6 +21,7 @@ public class EventPostWithComment {
     private Integer views;
     private Integer likes;
     private Set<Product> products;
+    private Set<Image> images;
     private User user;
     private Set<EventComment> reviewComments;
     private EventStatus eventStatus;
@@ -39,6 +40,9 @@ public class EventPostWithComment {
                 entity.getLikes().size(),
                 entity.getProducts().stream()
                         .map(Product::fromEntity)
+                        .collect(Collectors.toUnmodifiableSet()),
+                entity.getImages().stream()
+                        .map(Image::fromEventImageEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 User.fromEntity(entity.getUser()),
                 entity.getComments().stream()
