@@ -60,7 +60,7 @@ public class ReviewPostService {
 
         List<ProductEntity> productEntities = storeService.getProductListOnStore(request.getProducts(), request.getStoreId());
 
-        reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), request.getScope(), productEntities);
+        reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), request.getRating(), productEntities);
 
         addImages(request.getImages(), reviewPostEntity);
 
