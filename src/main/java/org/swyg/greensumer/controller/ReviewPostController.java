@@ -30,15 +30,15 @@ public class ReviewPostController {
         return Response.success();
     }
 
-    @PutMapping("/{postId}")
-    public Response<ReviewPostResponse> modify(@PathVariable Long postId, @RequestBody ReviewPostModifyRequest request, Authentication authentication) {
-        ReviewPost reviewPost = reviewPostService.modify(request, postId, authentication.getName());
+    @PutMapping("/{reviewId}")
+    public Response<ReviewPostResponse> modify(@PathVariable Long reviewId, @RequestBody ReviewPostModifyRequest request, Authentication authentication) {
+        ReviewPost reviewPost = reviewPostService.modify(request, reviewId, authentication.getName());
         return Response.success(ReviewPostResponse.fromReviewPost(reviewPost));
     }
 
-    @DeleteMapping("/{postId}")
-    public Response<Void> delete(@PathVariable Long postId, Authentication authentication) {
-        reviewPostService.delete(postId, authentication.getName());
+    @DeleteMapping("/{reviewId}")
+    public Response<Void> delete(@PathVariable Long reviewId, Authentication authentication) {
+        reviewPostService.delete(reviewId, authentication.getName());
         return Response.success();
     }
 
@@ -52,9 +52,9 @@ public class ReviewPostController {
         return Response.success(reviewPostService.list(pageable).map(ReviewNewPostResponse::fromReviewPost));
     }
 
-    @GetMapping("/{postId}")
-    public Response<ReviewPostWithCommentResponse> getPostAndComments(@PathVariable Long postId, Authentication authentication) {
-        ReviewPostWithComment postWithComment = reviewPostService.getPostAndComments(postId, authentication.getName());
+    @GetMapping("/{reviewId}")
+    public Response<ReviewPostWithCommentResponse> getPostAndComments(@PathVariable Long reviewId, Authentication authentication) {
+        ReviewPostWithComment postWithComment = reviewPostService.getPostAndComments(reviewId, authentication.getName());
         return Response.success(ReviewPostWithCommentResponse.fromReviewPostWithComment(postWithComment));
     }
 
@@ -63,33 +63,33 @@ public class ReviewPostController {
         return Response.success(reviewPostService.myList(authentication.getName(), pageable).map(ReviewPostResponse::fromReviewPost));
     }
 
-    @PostMapping("/{postId}/comments")
-    public Response<Void> createComment(@PathVariable Long postId, @RequestBody ReviewCommentCreateRequest request, Authentication authentication) {
-        reviewCommentService.createComment(postId, request.getContent(), authentication.getName());
+    @PostMapping("/{reviewId}/comments")
+    public Response<Void> createComment(@PathVariable Long reviewId, @RequestBody ReviewCommentCreateRequest request, Authentication authentication) {
+        reviewCommentService.createComment(reviewId, request.getContent(), authentication.getName());
 
         return Response.success();
     }
 
-    @PutMapping("/{postId}/comments/{commentId}")
+    @PutMapping("/{reviewId}/comments/{commentId}")
     public Response<ReviewCommentResponse> modifyComment(
-            @PathVariable Long postId,
+            @PathVariable Long reviewId,
             @PathVariable Long commentId,
             @RequestBody ReviewCommentModifyRequest request,
             Authentication authentication
     ) {
-        ReviewComment reviewComment = reviewCommentService.modifyComment(postId, commentId, request.getContent(), authentication.getName());
+        ReviewComment reviewComment = reviewCommentService.modifyComment(reviewId, commentId, request.getContent(), authentication.getName());
         return Response.success(ReviewCommentResponse.fromReviewComment(reviewComment));
     }
 
-    @DeleteMapping("/{postId}/comments/{commentId}")
-    public Response<Void> deleteComment(@PathVariable Long postId, @PathVariable Long commentId, Authentication authentication) {
-        reviewCommentService.deleteComment(postId, commentId, authentication.getName());
+    @DeleteMapping("/{reviewId}/comments/{commentId}")
+    public Response<Void> deleteComment(@PathVariable Long reviewId, @PathVariable Long commentId, Authentication authentication) {
+        reviewCommentService.deleteComment(reviewId, commentId, authentication.getName());
         return Response.success();
     }
 
-    @PostMapping("/{postId}/like")
-    public Response<ReviewLikeCountResponse> likeReviewPost(@PathVariable Long postId, Authentication authentication) {
-        ReviewPost reviewPost = reviewPostService.likeReviewPost(postId, authentication.getName());
+    @PostMapping("/{reviewId}/like")
+    public Response<ReviewLikeCountResponse> likeReviewPost(@PathVariable Long reviewId, Authentication authentication) {
+        ReviewPost reviewPost = reviewPostService.likeReviewPost(reviewId, authentication.getName());
         return Response.success(ReviewLikeCountResponse.fromReviewPost(reviewPost));
     }
 }
