@@ -23,14 +23,14 @@ public class SecurityConfig {
 
     @Value("${jwt.secret-key}") private String key;
     // private final TokenProvider tokenProvider;
-    private final CorsFilter corsFilter;
+    private final CorsConfig corsConfig;
     private final UserEntityRepositoryService userEntityRepositoryService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf().disable()
-                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(security -> security
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                 )
