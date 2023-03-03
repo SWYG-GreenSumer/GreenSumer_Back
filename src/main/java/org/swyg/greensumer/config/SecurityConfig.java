@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .sessionManagement(h -> h.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                        .mvcMatchers("/api/users/**").permitAll()
+                        .mvcMatchers("/api/users/**", "/swagger-ui/**", "/v3/**").permitAll()
                         .mvcMatchers("/api/interviews/**").hasRole("ADMIN")
                         .mvcMatchers("/api/stores/**", "api/events").hasRole("SELLER")
                         .antMatchers(HttpMethod.GET, "/api/reviews", "/api/reviews/news", "/api/maps/recommend").permitAll()
