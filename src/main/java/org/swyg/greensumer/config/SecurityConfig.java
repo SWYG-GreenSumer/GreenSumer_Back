@@ -30,7 +30,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf().disable()
-                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CorsFilter(corsConfig.corsFilter()), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(security -> security
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                 )
