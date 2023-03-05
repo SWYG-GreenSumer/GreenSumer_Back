@@ -35,10 +35,6 @@ public class ReviewPostEntity extends PostEntity {
 
     @ToString.Exclude
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
-    private Set<ReviewPostViewerEntity> viewer = new LinkedHashSet<>();
-
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<ReviewPostLikeEntity> likes = new LinkedHashSet<>();
     
     private String rating;
@@ -63,12 +59,8 @@ public class ReviewPostEntity extends PostEntity {
         this.images.addAll(images);
     }
 
-    public void addViewer(ReviewPostViewerEntity reviewPostViewerEntity) {
-        if (this.viewer.contains(reviewPostViewerEntity)) {
-            return;
-        }
-        reviewPostViewerEntity.setReview(this);
-        this.viewer.add(reviewPostViewerEntity);
+    public void addViewer() {
+       this.views++;
     }
 
     public void addProducts(Collection<ProductEntity> productEntities) {
@@ -98,7 +90,7 @@ public class ReviewPostEntity extends PostEntity {
         return Objects.hash(this.getId());
     }
 
-    public void updateReviewPost(String title, String content, String scope, Collection<ProductEntity> productEntities) {
+    public void updateReviewPost(String title, String content, String rating, Collection<ProductEntity> productEntities) {
         this.title = title;
         this.content = content;
         this.rating = rating;
@@ -108,6 +100,5 @@ public class ReviewPostEntity extends PostEntity {
     public void clear() {
         this.products.clear();
         this.images.clear();
-        this.viewer.clear();
     }
 }

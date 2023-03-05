@@ -18,7 +18,7 @@ public class ReviewPostWithCommentResponse {
     private String title;
     private String content;
     private String rating;
-    private Integer views;
+    private Long views;
     private Set<ProductResponse> products;
     private Set<ImageResponse> images;
     private UserResponse user;

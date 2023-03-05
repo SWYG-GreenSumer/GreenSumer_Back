@@ -1,12 +1,14 @@
 package org.swyg.greensumer.dto.request;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoreModifyRequest {
@@ -23,6 +25,18 @@ public class StoreModifyRequest {
     private Double lng;
 
     public static StoreModifyRequest of(String name, String type, String description, String hours, List<Long> images, String address, String roadname, String url, String phone, Double lat, Double lng) {
-        return new StoreModifyRequest(name, type, description, hours, images, address, roadname, url, phone, lat, lng);
+        return StoreModifyRequest.builder()
+                .name(name)
+                .type(type)
+                .description(description)
+                .hours(hours)
+                .images(images)
+                .address(address)
+                .roadname(roadname)
+                .url(url)
+                .phone(phone)
+                .lat(lat)
+                .lng(lng)
+                .build();
     }
 }

@@ -18,7 +18,7 @@ public class EventPostWithCommentResponse {
     private Long id;
     private String title;
     private String content;
-    private Integer views;
+    private Long views;
     private Integer likes;
     private Set<ProductResponse> products;
     private Set<ImageResponse> images;

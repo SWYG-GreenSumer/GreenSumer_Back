@@ -30,9 +30,6 @@ public class EventPostEntity extends PostEntity {
     @OneToMany(mappedBy = "event", orphanRemoval = true, cascade = {CascadeType.ALL})
     private Set<EventImageEntity> images = new LinkedHashSet<>();
 
-    @ToString.Exclude @OneToMany(fetch = FetchType.EAGER, mappedBy = "event", cascade = {CascadeType.ALL}, orphanRemoval = true)
-    private Set<EventPostViewerEntity> viewer = new LinkedHashSet<>();
-
     @ToString.Exclude
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "event", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<EventPostLikeEntity> likes = new LinkedHashSet<>();
@@ -65,13 +62,8 @@ public class EventPostEntity extends PostEntity {
         this.images.addAll(images);
     }
 
-    public void addViewer(EventPostViewerEntity eventPostViewerEntity) {
-        if (this.viewer.contains(eventPostViewerEntity)) {
-            return;
-        }
-
-        eventPostViewerEntity.setEvent(this);
-        this.viewer.add(eventPostViewerEntity);
+    public void addViewer() {
+        this.views++;
     }
 
     public void addProducts(Collection<ProductEntity> productEntities) {
@@ -104,7 +96,6 @@ public class EventPostEntity extends PostEntity {
 
     public void clear() {
         this.images.clear();
-        this.viewer.clear();
         this.products.clear();
     }
 

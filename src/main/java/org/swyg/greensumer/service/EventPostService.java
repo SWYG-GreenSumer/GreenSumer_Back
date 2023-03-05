@@ -17,7 +17,7 @@ import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.repository.event.EventPostEntityRepository;
 import org.swyg.greensumer.repository.event.EventPostLikeRepository;
-import org.swyg.greensumer.repository.event.EventPostViewerEntityRepository;
+import org.swyg.greensumer.repository.review.ViewsCacheRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,12 +30,12 @@ import java.util.stream.Collectors;
 public class EventPostService {
 
     private final EventPostEntityRepository eventPostEntityRepository;
-    private final EventPostViewerEntityRepository eventPostViewerEntityRepository;
     private final EventPostLikeRepository eventPostLikeRepository;
 
     private final UserEntityRepositoryService userEntityRepositoryService;
     private final StoreService storeService;
     private final ImageService imageService;
+    private final ViewsCacheRepository viewsCacheRepository;
 
     @Transactional
     public void create(EventPostCreateRequest request, String username) {
@@ -107,14 +107,13 @@ public class EventPostService {
 
     @Transactional
     public EventPostWithComment getPostAndComments(Long postId, String username) {
-        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
+        userEntityRepositoryService.loadUserByUsername(username);
         EventPostEntity eventPostEntity = getEventPostEntityOrException(postId);
 
-        EventPostViewerEntity eventPostViewerEntity = eventPostViewerEntityRepository.findByEvent_IdAndUser_Id(postId, userEntity.getId())
-                .orElseGet(() -> eventPostViewerEntityRepository.save(EventPostViewerEntity.of(eventPostEntity, userEntity))
-                );
-
-        eventPostEntity.addViewer(eventPostViewerEntity);
+        if(viewsCacheRepository.getView(postId, username, true)) {
+            viewsCacheRepository.setView(postId, username, true);
+            eventPostEntity.addViewer();
+        }
 
         return EventPostWithComment.fromEntity(eventPostEntity);
     }

@@ -20,7 +20,7 @@ public class ReviewPostResponse {
     private String title;
     private String content;
     private String scope;
-    private Integer views;
+    private Long views;
     private LocalDateTime registeredAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

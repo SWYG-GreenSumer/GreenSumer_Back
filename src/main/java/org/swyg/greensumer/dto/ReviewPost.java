@@ -16,7 +16,7 @@ public class ReviewPost {
     private Long id;
     private String title;
     private String content;
-    private Integer views;
+    private Long views;
     private Integer likes;
     private String scope;
     private Set<ReviewComment> comments;
@@ -32,7 +32,7 @@ public class ReviewPost {
                 entity.getId(),
                 entity.getTitle(),
                 entity.getContent(),
-                entity.getViewer().size(),
+                entity.getViews(),
                 entity.getLikes().size(),
                 entity.getRating(),
                 entity.getComments().stream()

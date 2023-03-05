@@ -20,7 +20,7 @@ public class EventPostResponse {
     private Set<ImageResponse> images;
     private String title;
     private String content;
-    private Integer views;
+    private Long views;
     private Integer likes;
     private EventStatus eventStatus;
     private LocalDateTime startedAt;

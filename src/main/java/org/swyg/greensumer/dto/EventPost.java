@@ -17,7 +17,7 @@ public class EventPost {
     private Long id;
     private String title;
     private String content;
-    private Integer views;
+    private Long views;
     private Integer likes;
     private Set<Product> products;
     private Set<Image> images;
@@ -34,7 +34,7 @@ public class EventPost {
                 entity.getId(),
                 entity.getTitle(),
                 entity.getContent(),
-                entity.getViewer().size(),
+                entity.getViews(),
                 entity.getLikes().size(),
                 entity.getProducts().stream()
                         .map(Product::fromEntity)

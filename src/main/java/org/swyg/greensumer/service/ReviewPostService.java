@@ -15,7 +15,7 @@ import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.repository.review.ReviewPostEntityRepository;
 import org.swyg.greensumer.repository.review.ReviewPostLikeEntityRepository;
-import org.swyg.greensumer.repository.review.ReviewPostViewerEntityRepository;
+import org.swyg.greensumer.repository.review.ViewsCacheRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,11 +28,11 @@ import static org.swyg.greensumer.service.ImageService.IMAGE_UPLOAD_MAX_COUNT;
 public class ReviewPostService {
 
     private final ReviewPostEntityRepository reviewPostEntityRepository;
-    private final ReviewPostViewerEntityRepository reviewPostViewerEntityRepository;
     private final UserEntityRepositoryService userEntityRepositoryService;
     private final StoreService storeService;
     private final ImageService imageService;
     private final ReviewPostLikeEntityRepository reviewPostLikeEntityRepository;
+    private final ViewsCacheRepository viewsCacheRepository;
 
     @Transactional
     public void create(ReviewPostCreateRequest request, String username) {
@@ -88,15 +88,13 @@ public class ReviewPostService {
 
     @Transactional
     public ReviewPostWithComment getPostAndComments(Long postId, String username) {
-        UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
-
+        userEntityRepositoryService.loadUserByUsername(username);
         ReviewPostEntity reviewPostEntity = getReviewPostEntityOrException(postId);
 
-        ReviewPostViewerEntity reviewPostViewerEntity = reviewPostViewerEntityRepository.findByReview_IdAndUser_Username(postId, username).orElseGet(
-                () -> reviewPostViewerEntityRepository.save(ReviewPostViewerEntity.of(reviewPostEntity, userEntity))
-        );
-
-        reviewPostEntity.addViewer(reviewPostViewerEntity);
+        if(viewsCacheRepository.getView(postId, username, false)) {
+            viewsCacheRepository.setView(postId, username, false);
+            reviewPostEntity.addViewer();
+        }
 
         return ReviewPostWithComment.fromEntity(reviewPostEntity);
     }

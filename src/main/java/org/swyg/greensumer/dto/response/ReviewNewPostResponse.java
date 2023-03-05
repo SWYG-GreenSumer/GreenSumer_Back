@@ -10,7 +10,7 @@ public class ReviewNewPostResponse {
     private String title;
     private String nickname;
     private String scope;
-    private int views;
+    private Long views;
     private int likes;
 
     public static ReviewNewPostResponse fromReviewPost(ReviewPost reviewPost){

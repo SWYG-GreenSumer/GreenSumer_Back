@@ -18,7 +18,7 @@ public class ReviewPostWithComment {
     private String title;
     private String content;
     private String rating;
-    private Integer views;
+    private Long views;
     private Set<Product> products;
     private Set<Image> images;
     private User user;
@@ -33,7 +33,7 @@ public class ReviewPostWithComment {
                 entity.getTitle(),
                 entity.getContent(),
                 entity.getRating(),
-                entity.getViewer().size(),
+                entity.getViews(),
                 entity.getProducts().stream()
                         .map(Product::fromEntity)
                         .collect(Collectors.toUnmodifiableSet()),

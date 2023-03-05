@@ -30,7 +30,7 @@ public class UserCacheRepository {
     }
 
     public void setUser(User user){
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<User>(User.class));
+        this.redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<User>(User.class));
         this.valueOperations = redisTemplate.opsForValue();
 
         if(Objects.isNull(user) || Objects.isNull(user.getUsername())){
@@ -48,7 +48,7 @@ public class UserCacheRepository {
     }
 
     public Optional<User> getUser(String username){
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<User>(User.class));
+        this.redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<User>(User.class));
         this.valueOperations = redisTemplate.opsForValue();
 
         String key = getKey(username);

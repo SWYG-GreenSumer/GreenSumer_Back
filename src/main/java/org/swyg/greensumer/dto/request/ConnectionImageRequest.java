@@ -5,13 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConnectionImageRequest {
-
-    private List<Long> images;
+    private Long start;
+    private Long end;
 }
