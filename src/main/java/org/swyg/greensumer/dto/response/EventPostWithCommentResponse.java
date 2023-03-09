@@ -20,7 +20,7 @@ public class EventPostWithCommentResponse {
     private String content;
     private Long views;
     private Integer likes;
-    private Set<ProductResponse> products;
+    private Set<EventPostWithProductResponse> products;
     private Set<ImageResponse> images;
     private UserResponse user;
     private Set<EventCommentResponse> reviewComments;
@@ -39,7 +39,7 @@ public class EventPostWithCommentResponse {
                 postWithComment.getViews(),
                 postWithComment.getLikes(),
                 postWithComment.getProducts().stream()
-                        .map(ProductResponse::fromProduct)
+                        .map(EventPostWithProductResponse::fromEventPostWithProduct)
                         .collect(Collectors.toUnmodifiableSet()),
                 postWithComment.getImages().stream()
                         .map(ImageResponse::fromImage)

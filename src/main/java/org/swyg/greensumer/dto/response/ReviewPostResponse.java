@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class ReviewPostResponse {
     private Long id;
     private UserResponse user;
-    private Set<ProductResponse> products;
+    private Set<ReviewPostWithProductResponse> products;
     private Set<ImageResponse> images;
     private String title;
     private String content;
@@ -30,7 +30,7 @@ public class ReviewPostResponse {
                 reviewPost.getId(),
                 UserResponse.fromUser(reviewPost.getUser()),
                 reviewPost.getProducts().stream()
-                        .map(ProductResponse::fromProduct)
+                        .map(ReviewPostWithProductResponse::fromReviewPostWithProduct)
                         .collect(Collectors.toUnmodifiableSet()),
                 reviewPost.getImages().stream()
                         .map(ImageResponse::fromImage)

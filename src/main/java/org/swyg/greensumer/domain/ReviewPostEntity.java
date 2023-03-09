@@ -22,21 +22,23 @@ import java.util.Set;
 @Where(clause = "deleted_at is NULL")
 public class ReviewPostEntity extends PostEntity {
 
-    @OneToMany(mappedBy = "reviewPost")
-    private Set<ProductEntity> products = new LinkedHashSet<>();
-
     @ToString.Exclude
     @OrderBy("registeredAt DESC")
     @OneToMany(mappedBy = "reviewPost", cascade = CascadeType.ALL)
     private Set<ReviewCommentEntity> comments = new LinkedHashSet<>();
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "review", orphanRemoval = true, cascade = {CascadeType.ALL})
     private Set<ReviewImageEntity> images = new LinkedHashSet<>();
 
     @ToString.Exclude
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<ReviewPostLikeEntity> likes = new LinkedHashSet<>();
-    
+
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    private Set<ReviewPostProductEntity> postProductsEntities = new LinkedHashSet<>();
+
     private String rating;
 
     public ReviewPostEntity() {
@@ -53,6 +55,12 @@ public class ReviewPostEntity extends PostEntity {
         return new ReviewPostEntity(user, title, content, rating);
     }
 
+    public void setProducts(Collection<ReviewPostProductEntity> products) {
+        postProductsEntities.forEach(e -> e.setReviewPost(this));
+        this.postProductsEntities.clear();
+        this.postProductsEntities.addAll(products);
+    }
+
     public void addImages(Collection<ReviewImageEntity> images) {
         images.forEach(e -> e.setReview(this));
         this.images.clear();
@@ -60,13 +68,7 @@ public class ReviewPostEntity extends PostEntity {
     }
 
     public void addViewer() {
-       this.views++;
-    }
-
-    public void addProducts(Collection<ProductEntity> productEntities) {
-        productEntities.forEach(p -> p.setReviewPost(this));
-        this.products.clear();
-        this.products.addAll(productEntities);
+        this.views++;
     }
 
     public void addLikes(ReviewPostLikeEntity reviewPostLikeEntity) {
@@ -90,15 +92,15 @@ public class ReviewPostEntity extends PostEntity {
         return Objects.hash(this.getId());
     }
 
-    public void updateReviewPost(String title, String content, String rating, Collection<ProductEntity> productEntities) {
+    public void updateReviewPost(String title, String content, String rating, Collection<ReviewPostProductEntity> reviewPostProductsEntities) {
         this.title = title;
         this.content = content;
         this.rating = rating;
-        addProducts(productEntities);
+        this.setProducts(reviewPostProductsEntities);
     }
 
     public void clear() {
-        this.products.clear();
+        this.postProductsEntities.clear();
         this.images.clear();
     }
 }

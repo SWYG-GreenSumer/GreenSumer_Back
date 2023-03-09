@@ -1,12 +1,14 @@
 package org.swyg.greensumer.dto.request;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserSignUpRequest {
     private String username;
     private String password;
@@ -17,11 +19,16 @@ public class UserSignUpRequest {
     private String phone;
     private boolean gender;
 
-    public static UserSignUpRequest of(String username, String password, String email, String nickname) {
-        return new UserSignUpRequest(username, password, email, nickname, null, null, null, true);
-    }
-
     public static UserSignUpRequest of(String username, String password, String name, String birth, String nickname, String email, String phone, boolean gender) {
-        return new UserSignUpRequest(username, password, name, birth, nickname, email, phone, gender);
+        return UserSignUpRequest.builder()
+                .username(username)
+                .password(password)
+                .name(name)
+                .birth(birth)
+                .nickname(nickname)
+                .email(email)
+                .phone(phone)
+                .gender(gender)
+                .build();
     }
 }

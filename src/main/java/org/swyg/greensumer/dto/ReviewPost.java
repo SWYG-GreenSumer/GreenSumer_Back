@@ -20,7 +20,7 @@ public class ReviewPost {
     private Integer likes;
     private String scope;
     private Set<ReviewComment> comments;
-    private Set<Product> products;
+    private Set<ReviewPostWithProduct> products;
     private Set<Image> images;
     private User user;
     private LocalDateTime registeredAt;
@@ -38,8 +38,8 @@ public class ReviewPost {
                 entity.getComments().stream()
                         .map(ReviewComment::fromEntity)
                         .collect(Collectors.toUnmodifiableSet()),
-                entity.getProducts().stream()
-                        .map(Product::fromEntity)
+                entity.getPostProductsEntities().stream()
+                        .map(ReviewPostWithProduct::fromEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 entity.getImages().stream()
                         .map(Image::fromReviewImageEntity)

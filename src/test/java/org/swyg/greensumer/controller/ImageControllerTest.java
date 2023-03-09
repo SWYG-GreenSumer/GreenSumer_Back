@@ -24,7 +24,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.swyg.greensumer.fixture.Fixtures.image;
-import static org.swyg.greensumer.fixture.RequestFixture.*;
+import static org.swyg.greensumer.fixture.RequestFixture.ImageModifyRequest;
+import static org.swyg.greensumer.fixture.RequestFixture.ImagesCreateRequest;
 
 @DisplayName("View 컨트롤러 - 이미지 등록")
 @ActiveProfiles("test")

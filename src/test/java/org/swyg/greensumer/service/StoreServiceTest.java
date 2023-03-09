@@ -9,21 +9,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.swyg.greensumer.domain.*;
-import org.swyg.greensumer.dto.Product;
 import org.swyg.greensumer.dto.SellerStore;
 import org.swyg.greensumer.dto.Store;
-import org.swyg.greensumer.dto.User;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
-import org.swyg.greensumer.repository.AddressEntityRepository;
 import org.swyg.greensumer.repository.images.StoreImageEntityRepository;
+import org.swyg.greensumer.repository.store.AddressEntityRepository;
 import org.swyg.greensumer.repository.store.ProductEntityRepository;
 import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
 import org.swyg.greensumer.repository.store.StoreEntityRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +29,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.*;
 import static org.swyg.greensumer.fixture.Fixtures.*;
-import static org.swyg.greensumer.fixture.Fixtures.storeImageEntities;
 import static org.swyg.greensumer.fixture.RequestFixture.StoreCreateRequest;
 import static org.swyg.greensumer.fixture.RequestFixture.StoreModifyRequest;
 

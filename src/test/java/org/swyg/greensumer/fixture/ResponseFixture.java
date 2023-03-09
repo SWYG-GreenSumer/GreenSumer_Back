@@ -1,15 +1,5 @@
 package org.swyg.greensumer.fixture;
 
-import org.swyg.greensumer.domain.constant.UserRole;
-import org.swyg.greensumer.dto.response.ProductResponse;
-import org.swyg.greensumer.dto.response.ReviewCommentResponse;
-import org.swyg.greensumer.dto.response.ReviewPostWithCommentResponse;
-import org.swyg.greensumer.dto.response.UserResponse;
-
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Set;
-
 public class ResponseFixture {
 
 //    private ReviewPostWithCommentResponse createReviewPostWithCommentsResponse() {

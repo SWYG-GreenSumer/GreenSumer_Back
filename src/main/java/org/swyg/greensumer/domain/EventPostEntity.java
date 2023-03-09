@@ -20,10 +20,8 @@ import java.util.*;
 @Where(clause = "deleted_at is NULL")
 public class EventPostEntity extends PostEntity {
 
-    @OneToMany(mappedBy = "eventPost")
-    private Set<ProductEntity> products = new LinkedHashSet<>();
-
-    @ToString.Exclude @OrderBy("registeredAt DESC")
+    @ToString.Exclude
+    @OrderBy("registeredAt DESC")
     @OneToMany(mappedBy = "eventPost")
     private Set<EventCommentEntity> comments = new LinkedHashSet<>();
 
@@ -34,13 +32,18 @@ public class EventPostEntity extends PostEntity {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "event", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<EventPostLikeEntity> likes = new LinkedHashSet<>();
 
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "event", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    private Set<EventPostProductEntity> eventPostProductEntities = new LinkedHashSet<>();
+
     @Enumerated(EnumType.ORDINAL)
     private EventStatus eventStatus;
 
     private LocalDateTime started_at;
     private LocalDateTime ended_at;
 
-    protected EventPostEntity() {}
+    protected EventPostEntity() {
+    }
 
     private EventPostEntity(UserEntity user, String title, String content, LocalDateTime started_at, LocalDateTime ended_at, EventStatus status) {
         this.user = user;
@@ -66,10 +69,10 @@ public class EventPostEntity extends PostEntity {
         this.views++;
     }
 
-    public void addProducts(Collection<ProductEntity> productEntities) {
-        productEntities.forEach(p -> p.setEventPost(this));
-        this.products.clear();
-        this.products.addAll(productEntities);
+    public void setEventPostProductEntities(Collection<EventPostProductEntity> eventPostProductEntities) {
+        eventPostProductEntities.forEach(e -> e.setEvent(this));
+        this.eventPostProductEntities.clear();
+        this.eventPostProductEntities.addAll(eventPostProductEntities);
     }
 
     @Override
@@ -84,19 +87,19 @@ public class EventPostEntity extends PostEntity {
         return Objects.hash(this.getId());
     }
 
-    public void updateEventPost(List<ProductEntity> productEntities, String title, String content, LocalDateTime started_at, LocalDateTime ended_at, EventStatus eventStatus) {
+    public void updateEventPost(List<EventPostProductEntity> eventPostProductEntities, String title, String content, LocalDateTime started_at, LocalDateTime ended_at, EventStatus eventStatus) {
         this.title = title;
         this.content = content;
         this.started_at = started_at;
         this.ended_at = ended_at;
         this.eventStatus = eventStatus;
 
-        addProducts(productEntities);
+        setEventPostProductEntities(eventPostProductEntities);
     }
 
     public void clear() {
         this.images.clear();
-        this.products.clear();
+        this.eventPostProductEntities.clear();
     }
 
     public void addLikes(EventPostLikeEntity eventPostLikeEntity) {

@@ -23,6 +23,7 @@ import java.util.Set;
 @SQLDelete(sql = "UPDATE product SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
 public class ProductEntity extends DateTimeEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,11 +31,11 @@ public class ProductEntity extends DateTimeEntity {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "product")
     private Set<StoreProductEntity> storeProducts = new LinkedHashSet<>();
 
-    @JsonIgnore @ManyToOne(optional = false, fetch = FetchType.EAGER) @JoinColumn(name = "review_id")
-    private ReviewPostEntity reviewPost;
+    @JsonIgnore @OneToMany(fetch = FetchType.EAGER, mappedBy = "product", cascade = CascadeType.MERGE)
+    private Set<ReviewPostProductEntity> reviewPostProducts;
 
-    @JsonIgnore @ManyToOne(optional = false, fetch = FetchType.EAGER) @JoinColumn(name = "event_id")
-    private EventPostEntity eventPost;
+    @JsonIgnore @OneToMany(fetch = FetchType.EAGER, mappedBy = "product", cascade = CascadeType.MERGE)
+    private Set<EventPostProductEntity> eventPostProducts;
 
     @Column(name = "name", length = 50) private String name;
 
@@ -47,21 +48,21 @@ public class ProductEntity extends DateTimeEntity {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "product", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<ProductImageEntity> images = new LinkedHashSet<>();
 
-    public void setReviewPost(ReviewPostEntity reviewPost) {
-        this.reviewPost = reviewPost;
+    public void setReviewPostProducts(Collection<ReviewPostProductEntity> reviewPostProducts) {
+        reviewPostProducts.forEach(e -> e.setProduct(this));
+        this.reviewPostProducts.clear();
+        this.reviewPostProducts.addAll(reviewPostProducts);
     }
 
-    public void setEventPost(EventPostEntity eventPost) {
-        this.eventPost = eventPost;
+    public void setEventPost(Collection<EventPostProductEntity> eventPostProductEntities) {
+        eventPostProductEntities.forEach(e -> e.setProduct(this));
+        this.eventPostProducts.clear();
+        this.eventPostProducts.addAll(eventPostProductEntities);
     }
 
     public void addStoreProduct(StoreProductEntity storeProductEntity){
         storeProductEntity.setProduct(this);
         this.storeProducts.add(storeProductEntity);
-    }
-
-    public void clearStoreProduct(){
-        this.storeProducts.clear();
     }
 
     public void addImages(Collection<ProductImageEntity> images) {

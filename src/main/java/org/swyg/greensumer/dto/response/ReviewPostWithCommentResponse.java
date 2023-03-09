@@ -19,7 +19,7 @@ public class ReviewPostWithCommentResponse {
     private String content;
     private String rating;
     private Long views;
-    private Set<ProductResponse> products;
+    private Set<ReviewPostWithProductResponse> products;
     private Set<ImageResponse> images;
     private UserResponse user;
     private Set<ReviewCommentResponse> reviewComments;
@@ -35,7 +35,7 @@ public class ReviewPostWithCommentResponse {
                 postWithComment.getRating(),
                 postWithComment.getViews(),
                 postWithComment.getProducts().stream()
-                        .map(ProductResponse::fromProduct)
+                        .map(ReviewPostWithProductResponse::fromReviewPostWithProduct)
                         .collect(Collectors.toUnmodifiableSet()),
                 postWithComment.getImages().stream()
                         .map(ImageResponse::fromImage)

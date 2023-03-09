@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.swyg.greensumer.dto.ZeroWasteShopResponse;
 import org.swyg.greensumer.dto.request.ZeroWasteShopRequest;
 import org.swyg.greensumer.dto.response.Response;
-import org.swyg.greensumer.service.ZeroWasteShopRecommendationService;
+import org.swyg.greensumer.service.ShopRecommendationService;
 
 import java.util.List;
 
@@ -19,11 +19,11 @@ import java.util.List;
 @RequestMapping("/api/maps/recommend")
 public class MapController {
 
-    private final ZeroWasteShopRecommendationService zeroWasteShopRecommendationService;
+    private final ShopRecommendationService shopRecommendationService;
 
     @PostMapping
     public Response<List<ZeroWasteShopResponse>> recommend(@RequestBody ZeroWasteShopRequest request){
-        List<ZeroWasteShopResponse> zeroWasteShopResponses = zeroWasteShopRecommendationService.recommendZeroWasteShopList(request);
+        List<ZeroWasteShopResponse> zeroWasteShopResponses = shopRecommendationService.recommendZeroWasteShopList(request);
 
         return Response.success(zeroWasteShopResponses);
     }

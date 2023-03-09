@@ -16,7 +16,6 @@ import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.jwt.JwtTokenUtils;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Set;
 
@@ -46,6 +45,8 @@ public class UserService {
     public void signup(UserSignUpRequest request) {
         userEntityRepositoryService.existUsername(request.getUsername());
 
+        String[] temps = request.getBirth().split("-");
+
         UserEntity userEntity = userEntityRepositoryService.save(UserEntity.builder()
                 .username(request.getUsername())
                 .password(encoder.encode(request.getPassword()))
@@ -53,7 +54,7 @@ public class UserService {
                 .fullname(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
-                .birth(LocalDate.parse(request.getBirth(), DateTimeFormatter.ISO_DATE))
+                .birth(LocalDate.of(Integer.parseInt(temps[0]), Integer.parseInt(temps[1]), Integer.parseInt(temps[2])))
                 .gender(request.isGender())
                 .roles(Set.of(UserRole.ROLE_USER))
                 .build());

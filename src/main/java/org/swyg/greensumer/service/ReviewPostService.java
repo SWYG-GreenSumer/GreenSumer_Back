@@ -15,8 +15,10 @@ import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.repository.review.ReviewPostEntityRepository;
 import org.swyg.greensumer.repository.review.ReviewPostLikeEntityRepository;
+import org.swyg.greensumer.repository.review.ReviewPostProductEntityRepository;
 import org.swyg.greensumer.repository.review.ViewsCacheRepository;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ public class ReviewPostService {
     private final ImageService imageService;
     private final ReviewPostLikeEntityRepository reviewPostLikeEntityRepository;
     private final ViewsCacheRepository viewsCacheRepository;
+    private final ReviewPostProductEntityRepository reviewPostProductEntityRepository;
 
     @Transactional
     public void create(ReviewPostCreateRequest request, String username) {
@@ -46,9 +49,16 @@ public class ReviewPostService {
                 request.getRating()
         ));
 
-        if(productEntities.size() > 0){
-            reviewPostEntity.addProducts(productEntities);
+        List<ReviewPostProductEntity> reviewPostProductEntities = new LinkedList<>();
+
+        for(ProductEntity product : productEntities) {
+            reviewPostProductEntities.add(ReviewPostProductEntity.builder()
+                    .review(reviewPostEntity)
+                    .product(product)
+                    .build());
         }
+
+        reviewPostProductEntityRepository.saveAll(reviewPostProductEntities);
 
         addImages(request.getImages(), reviewPostEntity);
     }
@@ -60,7 +70,16 @@ public class ReviewPostService {
 
         List<ProductEntity> productEntities = storeService.getProductListOnStore(request.getProducts(), request.getStoreId());
 
-        reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), request.getRating(), productEntities);
+        List<ReviewPostProductEntity> reviewPostProductEntities = new LinkedList<>();
+
+        for(ProductEntity product : productEntities) {
+            reviewPostProductEntities.add(ReviewPostProductEntity.builder()
+                    .review(reviewPostEntity)
+                    .product(product)
+                    .build());
+        }
+
+        reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), request.getRating(), reviewPostProductEntities);
 
         addImages(request.getImages(), reviewPostEntity);
 

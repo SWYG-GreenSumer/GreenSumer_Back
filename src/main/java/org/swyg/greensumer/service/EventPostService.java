@@ -17,10 +17,12 @@ import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
 import org.swyg.greensumer.repository.event.EventPostEntityRepository;
 import org.swyg.greensumer.repository.event.EventPostLikeRepository;
+import org.swyg.greensumer.repository.event.EventPostProductEntityRepository;
 import org.swyg.greensumer.repository.review.ViewsCacheRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class EventPostService {
     private final StoreService storeService;
     private final ImageService imageService;
     private final ViewsCacheRepository viewsCacheRepository;
+    private final EventPostProductEntityRepository eventPostProductEntityRepository;
 
     @Transactional
     public void create(EventPostCreateRequest request, String username) {
@@ -56,29 +59,41 @@ public class EventPostService {
                 .status(eventStatus)
                 .build());
 
-        if (productEntities.size() > 0) {
-            eventPostEntity.addProducts(productEntities);
+        List<EventPostProductEntity> eventPostProductEntities = new LinkedList<>();
+
+        for (ProductEntity product : productEntities) {
+            eventPostProductEntities.add(EventPostProductEntity.builder()
+                    .event(eventPostEntity)
+                    .product(product)
+                    .build());
         }
+
+        eventPostProductEntityRepository.saveAll(eventPostProductEntities);
 
         addImages(request.getImages(), eventPostEntity);
     }
 
     @Transactional
     public EventPost modify(EventPostModifyRequest request, Long postId, String username) {
-        if (request.getImages().size() > 5) {
-            throw new GreenSumerBackApplicationException(ErrorCode.OVER_IMAGE_COUNT, String.format("Max Image count is 5, but requesting size is %s", request.getImages().size()));
-        }
-
         EventPostEntity eventPostEntity = getEventPostEntityOrException(postId);
         List<ProductEntity> productEntities = storeService.getProductListOnStore(request.getProducts(), request.getStoreId());
 
         isEventMine(eventPostEntity.getUser().getUsername(), username, postId);
 
+        List<EventPostProductEntity> eventPostProductEntities = new LinkedList<>();
+
+        for (ProductEntity product : productEntities) {
+            eventPostProductEntities.add(EventPostProductEntity.builder()
+                    .event(eventPostEntity)
+                    .product(product)
+                    .build());
+        }
+
         LocalDateTime startedAt = toLocalDateTime(request.getStartedAt());
         LocalDateTime endedAt = toLocalDateTime(request.getStartedAt());
         EventStatus eventStatus = VerifyEventStatus(startedAt, endedAt);
 
-        eventPostEntity.updateEventPost(productEntities, request.getTitle(), request.getContent(), startedAt, endedAt, eventStatus);
+        eventPostEntity.updateEventPost(eventPostProductEntities, request.getTitle(), request.getContent(), startedAt, endedAt, eventStatus);
 
         addImages(request.getImages(), eventPostEntity);
 
@@ -110,7 +125,7 @@ public class EventPostService {
         userEntityRepositoryService.loadUserByUsername(username);
         EventPostEntity eventPostEntity = getEventPostEntityOrException(postId);
 
-        if(viewsCacheRepository.getView(postId, username, true)) {
+        if (viewsCacheRepository.getView(postId, username, true)) {
             viewsCacheRepository.setView(postId, username, true);
             eventPostEntity.addViewer();
         }

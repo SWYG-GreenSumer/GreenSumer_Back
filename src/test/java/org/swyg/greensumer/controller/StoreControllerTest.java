@@ -26,8 +26,8 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.swyg.greensumer.fixture.Fixtures.storeProduct;
 import static org.swyg.greensumer.fixture.RequestFixture.*;
-import static org.swyg.greensumer.fixture.Fixtures.*;
 
 @DisplayName("View 컨트롤러 - 제로웨이스트 샵")
 @ActiveProfiles("test")

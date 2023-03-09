@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class EventPostResponse {
     private Long id;
     private UserResponse user;
-    private Set<ProductResponse> product;
+    private Set<EventPostWithProductResponse> product;
     private Set<ImageResponse> images;
     private String title;
     private String content;
@@ -34,7 +34,7 @@ public class EventPostResponse {
                 eventPost.getId(),
                 UserResponse.fromUser(eventPost.getUser()),
                 eventPost.getProducts().stream()
-                        .map(ProductResponse::fromProduct)
+                        .map(EventPostWithProductResponse::fromEventPostWithProduct)
                         .collect(Collectors.toUnmodifiableSet()),
                 eventPost.getImages().stream()
                         .map(ImageResponse::fromImage)
