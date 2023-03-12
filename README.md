@@ -1,3 +1,5 @@
+[![Deploy to cloudtype](https://github.com/SWYG-GreenSumer/GreenSumer_Back/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/SWYG-GreenSumer/GreenSumer_Back/actions/workflows/deploy.yml)
+
 # GreenSumer_Back
 
 Greensumer 프로젝트는 주변에 위치한 제로웨이스트 샵을 추천해주고 가게 이벤트와 리뷰를 사용자에게 많은 정보를 제공해주기 위해 시작된 서비스입니다.
