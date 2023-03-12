@@ -37,7 +37,7 @@ public class EventPost {
                 entity.getViews(),
                 entity.getLikes().size(),
                 entity.getEventPostProductEntities().stream()
-                        .map(EventPostWithProduct::fromEntity)
+                        .map(EventPostWithProduct::getProductFromEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 entity.getImages().stream()
                         .map(Image::fromEventImageEntity)

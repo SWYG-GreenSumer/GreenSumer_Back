@@ -52,7 +52,6 @@ public class EventPostEntity extends PostEntity {
         this.started_at = started_at;
         this.ended_at = ended_at;
         this.eventStatus = status;
-        this.views = 0L;
     }
 
     @Builder

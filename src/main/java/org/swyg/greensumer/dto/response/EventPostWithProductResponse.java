@@ -11,13 +11,10 @@ import org.swyg.greensumer.dto.EventPostWithProduct;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventPostWithProductResponse {
-    private Long id;
-    private EventPostResponse eventPost;
     private ProductResponse product;
 
     public static EventPostWithProductResponse fromEventPostWithProduct(EventPostWithProduct eventPostWithProduct) {
         return EventPostWithProductResponse.builder()
-                .eventPost(EventPostResponse.fromEventPost(eventPostWithProduct.getEventPost()))
                 .product(ProductResponse.fromProduct(eventPostWithProduct.getProduct()))
                 .build();
     }

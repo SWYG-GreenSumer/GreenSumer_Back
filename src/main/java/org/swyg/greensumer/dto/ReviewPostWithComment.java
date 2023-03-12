@@ -35,7 +35,7 @@ public class ReviewPostWithComment {
                 entity.getRating(),
                 entity.getViews(),
                 entity.getPostProductsEntities().stream()
-                        .map(ReviewPostWithProduct::fromEntity)
+                        .map(ReviewPostWithProduct::getProductFromEntity)
                         .collect(Collectors.toUnmodifiableSet()),
                 entity.getImages().stream()
                         .map(Image::fromReviewImageEntity)

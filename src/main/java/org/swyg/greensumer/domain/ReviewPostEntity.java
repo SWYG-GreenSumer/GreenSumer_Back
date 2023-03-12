@@ -49,7 +49,6 @@ public class ReviewPostEntity extends PostEntity {
         this.title = title;
         this.content = content;
         this.rating = rating;
-        this.views = 0L;
     }
 
     public static ReviewPostEntity of(UserEntity user, String title, String content, String rating) {

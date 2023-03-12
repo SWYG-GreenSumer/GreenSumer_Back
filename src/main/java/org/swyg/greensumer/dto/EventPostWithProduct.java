@@ -15,10 +15,8 @@ public class EventPostWithProduct {
     private EventPost eventPost;
     private Product product;
 
-    public static EventPostWithProduct fromEntity(EventPostProductEntity entity) {
+    public static EventPostWithProduct getProductFromEntity(EventPostProductEntity entity) {
         return EventPostWithProduct.builder()
-                .id(entity.getId())
-                .eventPost(EventPost.fromEntity(entity.getEvent()))
                 .product(Product.fromEntity(entity.getProduct()))
                 .build();
     }

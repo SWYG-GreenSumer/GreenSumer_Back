@@ -15,10 +15,8 @@ public class ReviewPostWithProduct {
     private ReviewPost reviewPost;
     private Product product;
 
-    public static ReviewPostWithProduct fromEntity(ReviewPostProductEntity entity) {
+    public static ReviewPostWithProduct getProductFromEntity(ReviewPostProductEntity entity) {
         return ReviewPostWithProduct.builder()
-                .id(entity.getId())
-                .reviewPost(ReviewPost.fromEntity(entity.getReview()))
                 .product(Product.fromEntity(entity.getProduct()))
                 .build();
     }
