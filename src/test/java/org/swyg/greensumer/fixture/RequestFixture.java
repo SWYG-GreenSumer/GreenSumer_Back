@@ -34,13 +34,13 @@ public class RequestFixture {
     private static final String CODE = "code";
     private static final String ROADNAME = "roadname";
     private static final int PRICE = 5000;
-    private static final int STOCK = 5;
+    private static final int STOCK = 1;
     private static final int modifiedPrice = PRICE + 1000;
     private static final int modifiedStock = STOCK + 1;
     private static final String URL = "http://www.naver.cion";
     private static final String AccessToken = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3QxIiwiaWF0IjoxNjc2NzkwNDgwLCJleHAiOjE2NzY3OTIyODB9.NhUIC2NSpLU1dBpoyQWjGU9O-nNfMczerYl-naPrihk";
     private static final String RefreshToken = "eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NzY3OTA0ODAsImV4cCI6MTY3NzM5NTI4MH0.Bk5sjSRHUaM-H0A1y_OloAwvX0G0HcJOLRND_H6yws0";
-    private static final List<Long> IMAGES = List.of(1L, 2L, 3L);
+    private static final List<Long> IMAGES = List.of(1L);
     private static final List<Long> PRODUCTS = List.of(1L, 2L, 3L);
     private static final String RATING = "★★★★★";
 
@@ -81,7 +81,7 @@ public class RequestFixture {
     }
 
     public static StoreModifyRequest StoreModifyRequest() {
-        return StoreModifyRequest.of(NAME, StoreType.CLOTHES.toString(), DESCRIPTION, HOURS, IMAGES, ADDRESS, ROADNAME, URL, PHONE, LAT, LNG);
+        return StoreModifyRequest.of(NAME, StoreType.CLOTHES.toString(), DESCRIPTION, HOURS, List.of(), ADDRESS, ROADNAME, URL, PHONE, LAT, LNG);
     }
 
     public static ProductCreateRequest ProductCreateRequest() {

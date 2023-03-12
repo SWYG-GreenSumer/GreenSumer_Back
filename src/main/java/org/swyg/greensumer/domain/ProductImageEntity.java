@@ -30,7 +30,8 @@ public class ProductImageEntity extends ImageEntity{
     }
 
     @Builder
-    private ProductImageEntity(UserEntity userEntity, String originFilename, String savedFilename, byte[] imageData) {
+    private ProductImageEntity(Long id, UserEntity userEntity, String originFilename, String savedFilename, byte[] imageData) {
+        this.id = id;
         this.userEntity = userEntity;
         this.originFilename = originFilename;
         this.savedFilename = savedFilename;

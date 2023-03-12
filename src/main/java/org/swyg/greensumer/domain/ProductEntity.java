@@ -17,9 +17,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Entity
-@Table(name = "product", indexes = {
-        @Index(name = "product_name_idx", columnList = "name")
-})
+@Table(name = "product")
 @SQLDelete(sql = "UPDATE product SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
 public class ProductEntity extends DateTimeEntity {
@@ -28,13 +26,13 @@ public class ProductEntity extends DateTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "product")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     private Set<StoreProductEntity> storeProducts = new LinkedHashSet<>();
 
-    @JsonIgnore @OneToMany(fetch = FetchType.EAGER, mappedBy = "product", cascade = CascadeType.MERGE)
+    @JsonIgnore @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.MERGE)
     private Set<ReviewPostProductEntity> reviewPostProducts;
 
-    @JsonIgnore @OneToMany(fetch = FetchType.EAGER, mappedBy = "product", cascade = CascadeType.MERGE)
+    @JsonIgnore @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.MERGE)
     private Set<EventPostProductEntity> eventPostProducts;
 
     @Column(name = "name", length = 50) private String name;
@@ -63,6 +61,11 @@ public class ProductEntity extends DateTimeEntity {
     public void addStoreProduct(StoreProductEntity storeProductEntity){
         storeProductEntity.setProduct(this);
         this.storeProducts.add(storeProductEntity);
+    }
+
+    public void addImage(ProductImageEntity images) {
+        images.setProduct(this);
+        this.images.add(images);
     }
 
     public void addImages(Collection<ProductImageEntity> images) {

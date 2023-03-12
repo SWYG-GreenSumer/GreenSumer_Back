@@ -96,10 +96,10 @@ public class Fixtures {
 
     private static ProductImageEntity productImageEntity() {
         return ProductImageEntity.builder()
+                .id(1L)
                 .originFilename("original")
                 .savedFilename("savedFile")
                 .userEntity(userEntity())
-                .imageData("imageData".getBytes())
                 .build();
     }
 
@@ -118,18 +118,21 @@ public class Fixtures {
     }
 
     public static ProductEntity productEntity() {
-        return ProductEntity.builder()
+        ProductEntity build = ProductEntity.builder()
                 .id(1L)
                 .name(name)
                 .price(price)
                 .description(description)
-                .images(Set.of(productImageEntity()))
                 .stock(1)
                 .build();
+
+        build.addImage(productImageEntity());
+        return build;
     }
 
     public static StoreProductEntity storeProductEntity() {
         return StoreProductEntity.builder()
+                .id(id)
                 .store(storeEntity())
                 .product(productEntity())
                 .build();
@@ -220,6 +223,12 @@ public class Fixtures {
         List<StoreImageEntity> storeImageEntities = new ArrayList<>();
         storeImageEntities.add(storeImageEntity());
         return storeImageEntities;
+    }
+
+    public static List<ProductImageEntity> productImageEntities() {
+        List<ProductImageEntity> productImageEntities = new ArrayList<>();
+        productImageEntities.add(productImageEntity());
+        return productImageEntities;
     }
 
 }

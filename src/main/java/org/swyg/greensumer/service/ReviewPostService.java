@@ -18,9 +18,7 @@ import org.swyg.greensumer.repository.review.ReviewPostLikeEntityRepository;
 import org.swyg.greensumer.repository.review.ReviewPostProductEntityRepository;
 import org.swyg.greensumer.repository.review.ViewsCacheRepository;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.swyg.greensumer.service.ImageService.IMAGE_UPLOAD_MAX_COUNT;
@@ -70,13 +68,15 @@ public class ReviewPostService {
 
         List<ProductEntity> productEntities = storeService.getProductListOnStore(request.getProducts(), request.getStoreId());
 
-        List<ReviewPostProductEntity> reviewPostProductEntities = new LinkedList<>();
+        List<ReviewPostProductEntity> reviewPostProductEntities = reviewPostProductEntityRepository.findAllByReview_Id(postId);
 
         for(ProductEntity product : productEntities) {
-            reviewPostProductEntities.add(ReviewPostProductEntity.builder()
-                    .review(reviewPostEntity)
-                    .product(product)
-                    .build());
+            if(!reviewPostProductEntities.stream().anyMatch(reviewPostProductEntity -> reviewPostProductEntity.getProduct().equals(product))) {
+                reviewPostProductEntities.add(reviewPostProductEntityRepository.save(ReviewPostProductEntity.builder()
+                        .review(reviewPostEntity)
+                        .product(product)
+                        .build()));
+            }
         }
 
         reviewPostEntity.updateReviewPost(request.getTitle(), request.getContent(), request.getRating(), reviewPostProductEntities);

@@ -10,15 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.swyg.greensumer.domain.*;
+import org.swyg.greensumer.dto.Product;
 import org.swyg.greensumer.dto.SellerStore;
 import org.swyg.greensumer.dto.Store;
 import org.swyg.greensumer.exception.ErrorCode;
 import org.swyg.greensumer.exception.GreenSumerBackApplicationException;
+import org.swyg.greensumer.repository.images.ProductImageEntityRepository;
 import org.swyg.greensumer.repository.images.StoreImageEntityRepository;
-import org.swyg.greensumer.repository.store.AddressEntityRepository;
-import org.swyg.greensumer.repository.store.ProductEntityRepository;
-import org.swyg.greensumer.repository.store.SellerStoreEntityRepository;
-import org.swyg.greensumer.repository.store.StoreEntityRepository;
+import org.swyg.greensumer.repository.store.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +28,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.*;
 import static org.swyg.greensumer.fixture.Fixtures.*;
-import static org.swyg.greensumer.fixture.RequestFixture.StoreCreateRequest;
-import static org.swyg.greensumer.fixture.RequestFixture.StoreModifyRequest;
+import static org.swyg.greensumer.fixture.Fixtures.productImageEntities;
+import static org.swyg.greensumer.fixture.RequestFixture.*;
+import static org.swyg.greensumer.fixture.RequestFixture.ProductCreateRequest;
 
 @DisplayName("비즈니스 로직 - 제로웨이스트 샵")
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +45,9 @@ class StoreServiceTest {
     @Mock private AddressService addressService;
     @Mock private AddressEntityRepository addressEntityRepository;
     @Mock private StoreImageEntityRepository storeImageEntityRepository;
+    @Mock private StoreCacheRepository storeCacheRepository;
+    @Mock private ProductImageEntityRepository productImageEntityRepository;
+    @Mock private StoreProductEntityRepository storeProductEntityRepository;
 
 
     private static UserEntity userEntity;
@@ -53,6 +56,8 @@ class StoreServiceTest {
     private static AddressEntity addressEntity;
     private static SellerStoreEntity sellerStoreEntity;
     private static List<StoreImageEntity> storeImageEntities;
+    private static List<ProductImageEntity> productImageEntities;
+    private static StoreProductEntity storeProductEntity;
 
     @BeforeEach
     void setUp() {
@@ -62,6 +67,8 @@ class StoreServiceTest {
         addressEntity = addressEntity();
         sellerStoreEntity = sellerStoreEntity();
         storeImageEntities = storeImageEntities();
+        productImageEntities = productImageEntities();
+        storeProductEntity = StoreProductEntity.of(storeEntity, productEntity);
     }
 
     @DisplayName("[가게 등록] 가게 정보를 입력하면, 가게를 생성한다.")
@@ -72,8 +79,9 @@ class StoreServiceTest {
         willReturn(userEntity).given(userEntityRepositoryService).findByUsernameOrException(anyString());
         willReturn(Optional.empty()).given(storeEntityRepository).findByNameAndAddress(anyString(), any(AddressEntity.class));
         willReturn(storeImageEntities()).given(storeImageEntityRepository).findAllByIdIn(anyList());
-        willReturn(storeEntity).given(storeEntityRepository).save(any());
-        willReturn(sellerStoreEntity).given(sellerStoreEntityRepository).save(any());
+        willReturn(storeEntity).given(storeEntityRepository).save(any(StoreEntity.class));
+        willReturn(sellerStoreEntity).given(sellerStoreEntityRepository).save(any(SellerStoreEntity.class));
+        willDoNothing().given(storeCacheRepository).save(any(Store.class));
 
         // When
         sut.create(StoreCreateRequest(), userEntity.getUsername());
@@ -85,6 +93,7 @@ class StoreServiceTest {
         verify(storeImageEntityRepository, times(1)).findAllByIdIn(anyList());
         verify(storeEntityRepository, times(1)).save(any());
         verify(sellerStoreEntityRepository, times(1)).save(any());
+        verify(storeCacheRepository, times(1)).save(any());
     }
 
     @DisplayName("[가게 등록] 회원가입하지 않은 사용자가 요청한 경우, 에러가 발생한다.")
@@ -134,30 +143,23 @@ class StoreServiceTest {
         verify(sellerStoreEntityRepository, times(0)).save(any());
     }
 
-    /**
-     * java.lang.UnsupportedOperationException 에러 발생
-     */
-
-    @Deprecated
     @DisplayName("[가게 수정] 수정된 가게 정보를 입력하면, 가게정보가 수정된다.")
     @Test
     void givenUpdatedStoreInfo_whenRequestingModifyStore_thenReturnStore() {
         // Given
         willReturn(getUser()).given(userEntityRepositoryService).loadUserByUsername(anyString());
-        willReturn(Optional.of(storeEntity)).given(storeEntityRepository).findById(storeEntity.getId());
-        willReturn(Optional.of(sellerStoreEntity)).given(sellerStoreEntityRepository).findBySeller_IdAndStore_Id(userEntity.getId(), storeEntity.getId());
+        willReturn(Optional.of(storeEntity)).given(storeEntityRepository).findById(anyLong());
+        willReturn(Optional.of(sellerStoreEntity)).given(sellerStoreEntityRepository).findBySeller_IdAndStore_Id(anyLong(), anyLong());
         willReturn(addressEntity).given(addressService).updateAddress(anyLong(), anyString(), anyString(), anyDouble(), anyDouble());
-        willReturn(storeImageEntities()).given(storeImageEntityRepository).findAllByIdIn(List.of(1L, 2L, 3L));
 
         // When
         sut.modify(storeEntity.getId(), StoreModifyRequest(), userEntity.getUsername());
 
         //Then
         verify(userEntityRepositoryService, times(1)).loadUserByUsername(anyString());
-        verify(storeEntityRepository, times(1)).findById(storeEntity.getId());
-        verify(sellerStoreEntityRepository, times(1)).findBySeller_IdAndStore_Id(userEntity.getId(), storeEntity.getId());
+        verify(storeEntityRepository, times(1)).findById(anyLong());
+        verify(sellerStoreEntityRepository, times(1)).findBySeller_IdAndStore_Id(anyLong(), anyLong());
         verify(addressService, times(1)).updateAddress(anyLong(), anyString(), anyString(), anyDouble(), anyDouble());
-        verify(storeImageEntityRepository, times(1)).findAllByIdIn(List.of(1L, 2L, 3L));
     }
 
     @DisplayName("[가게 수정] 회원가입하지 않은 유저가 요청한 경우")
@@ -182,19 +184,13 @@ class StoreServiceTest {
         verify(storeImageEntityRepository, times(0)).findAllByIdIn(any());
     }
 
-    /**
-     * java.lang.UnsupportedOperationException 에러 발생
-     */
-
-    @Deprecated
     @DisplayName("[가게 삭제] 가게아이디를 입력하면 가게를 삭제한다.")
     @Test
     void givenStoreId_whenRequestingDeleteStore_thenReturnNothing() {
         // Given
         willReturn(getUser()).given(userEntityRepositoryService).loadUserByUsername(anyString());
         willReturn(Optional.of(storeEntity)).given(storeEntityRepository).findById(anyLong());
-        willReturn(Optional.of(sellerStoreEntity)).given(sellerStoreEntityRepository).findBySeller_IdAndStore_Id(userEntity.getId(), storeEntity.getId());
-        willReturn(storeImageEntities()).given(storeImageEntityRepository).findAllByIdIn(List.of(1L));
+        willReturn(Optional.of(sellerStoreEntity)).given(sellerStoreEntityRepository).findBySeller_IdAndStore_Id(anyLong(), anyLong());
         willDoNothing().given(storeEntityRepository).deleteById(anyLong());
 
         // When
@@ -203,9 +199,8 @@ class StoreServiceTest {
         //Then
         verify(userEntityRepositoryService, times(1)).loadUserByUsername(anyString());
         verify(storeEntityRepository, times(1)).findById(anyLong());
-        verify(sellerStoreEntityRepository, times(1)).findBySeller_IdAndStore_Id(userEntity.getId(), storeEntity.getId());
-        verify(storeImageEntityRepository, times(1)).findAllByIdIn(List.of(1L));
-        verify(storeEntityRepository, times(1)).deleteById(any());
+        verify(sellerStoreEntityRepository, times(1)).findBySeller_IdAndStore_Id(anyLong(), anyLong());
+        verify(storeEntityRepository, times(1)).deleteById(anyLong());
     }
 
     @DisplayName("모든 가게 리스트 조회")
@@ -214,7 +209,7 @@ class StoreServiceTest {
         // Given
         Pageable pageable = Pageable.ofSize(10);
         willReturn(getUser()).given(userEntityRepositoryService).loadUserByUsername(anyString());
-        willReturn(Page.empty()).given(sellerStoreEntityRepository).findAll(pageable);
+        willReturn(Page.empty()).given(storeEntityRepository).findAll(pageable);
 
         // When
         Page<Store> stores = sut.list(pageable, userEntity.getUsername());
@@ -222,7 +217,7 @@ class StoreServiceTest {
         //Then
         assertThat(stores).isEmpty();
         verify(userEntityRepositoryService, times(1)).loadUserByUsername(anyString());
-        verify(sellerStoreEntityRepository, times(1)).findAll(pageable);
+        verify(storeEntityRepository, times(1)).findAll(pageable);
     }
 
     @DisplayName("로그인한 계정에 본인 가게 리스트 조회")
@@ -246,19 +241,24 @@ class StoreServiceTest {
 //    @Test
 //    void givenProduct_whenRequestingRegisterProduct_thenReturnProduct() {
 //        // Given
-//        Pageable pageable = Pageable.ofSize(10);
-//        willReturn(getUser()).given(userEntityRepositoryService).loadUserByUsername(anyString());
-//        willReturn(storeEntity).given(storeEntityRepository).findById(anyLong());
-//        willReturn(sellerStoreEntity).given(sellerStoreEntityRepository).findBySeller_IdAndStore_Id(anyLong(), anyLong());
-//        willReturn(storeEntity()).given(storeEntityRepository).findById(anyLong());
+//        willReturn(getUser()).given(userEntityRepositoryService).loadUserByUsername(userEntity.getUsername());
+//        willReturn(Optional.of(storeEntity)).given(storeEntityRepository).findById(storeEntity.getId());
+//        willReturn(Optional.of(sellerStoreEntity)).given(sellerStoreEntityRepository).findBySeller_IdAndStore_Id(userEntity.getId(), storeEntity.getId());
+//        willReturn(productImageEntities()).given(productImageEntityRepository).findAllByIdIn(ProductCreateRequest().getImages());
+//        willReturn(productEntity).given(productEntityRepository).save(ProductEntity.of(productEntity.getName(), productEntity.getPrice(), productEntity.getStock(), productEntity.getDescription()));
+//        willReturn(storeProductEntity).given(storeProductEntityRepository).save(StoreProductEntity.of(storeEntity, productEntity));
 //
 //        // When
-//        Page<SellerStore> sellerStores = sut.mylist(pageable, userEntity.getUsername());
+//        Product product = sut.registerProduct(storeEntity.getId(), ProductCreateRequest(), userEntity.getUsername());
 //
 //        //Then
-//        assertThat(sellerStores).isEmpty();
-//        verify(userEntityRepositoryService, times(1)).loadUserByUsername(anyString());
-//        verify(sellerStoreEntityRepository, times(1)).findAllBySeller_Id(userEntity.getId(), pageable);
+//        assertThat(product).isNotNull();
+//        verify(userEntityRepositoryService, times(1)).loadUserByUsername(userEntity.getUsername());
+//        verify(storeEntityRepository, times(1)).findById(storeEntity.getId());
+//        verify(sellerStoreEntityRepository, times(1)).findBySeller_IdAndStore_Id(userEntity.getId(), storeEntity.getId());
+//        verify(productImageEntityRepository, times(1)).findAllByIdIn(ProductCreateRequest().getImages());
+//        verify(productEntityRepository, times(1)).save(ProductEntity.of(productEntity.getName(), productEntity.getPrice(), productEntity.getStock(), productEntity.getDescription()));
+//        verify(storeProductEntityRepository, times(1)).save(StoreProductEntity.of(storeEntity, productEntity));
 //    }
 
 //    @DisplayName("제품 아이디입력하고 제품을 수정하면 해당 가게에 등록된 제품을 수정한다.")

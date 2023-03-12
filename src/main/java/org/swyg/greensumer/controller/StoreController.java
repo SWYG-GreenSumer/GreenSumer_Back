@@ -105,7 +105,7 @@ public class StoreController {
         return Response.success();
     }
 
-    @PutMapping("/{productId}/images/")
+    @PutMapping("products/{productId}/images")
     public Response<Void> connectImagesAtProduct(@PathVariable Long productId, @RequestBody ConnectionImageRequest request, Authentication authentication) {
         storeService.connectImagesAtProduct(productId, request);
 

@@ -28,7 +28,7 @@ public class ReviewPostEntity extends PostEntity {
     private Set<ReviewCommentEntity> comments = new LinkedHashSet<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "review", orphanRemoval = true, cascade = {CascadeType.ALL})
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", orphanRemoval = true, cascade = {CascadeType.ALL})
     private Set<ReviewImageEntity> images = new LinkedHashSet<>();
 
     @ToString.Exclude
@@ -36,7 +36,7 @@ public class ReviewPostEntity extends PostEntity {
     private Set<ReviewPostLikeEntity> likes = new LinkedHashSet<>();
 
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = false)
     private Set<ReviewPostProductEntity> postProductsEntities = new LinkedHashSet<>();
 
     private String rating;
@@ -49,6 +49,7 @@ public class ReviewPostEntity extends PostEntity {
         this.title = title;
         this.content = content;
         this.rating = rating;
+        this.views = 0L;
     }
 
     public static ReviewPostEntity of(UserEntity user, String title, String content, String rating) {

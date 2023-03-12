@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.swyg.greensumer.dto.SellerStore;
 import org.swyg.greensumer.dto.Store;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,9 @@ public class StoreResponse {
     private Double lat;
     private Double lng;
     private Set<ImageResponse> images;
+    private LocalDateTime registeredAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public static StoreResponse fromStore(Store store) {
         return new StoreResponse(
@@ -39,7 +43,10 @@ public class StoreResponse {
                 store.getAddress().getLng(),
                 store.getLogos().stream()
                         .map(ImageResponse::fromImage)
-                        .collect(Collectors.toUnmodifiableSet())
+                        .collect(Collectors.toUnmodifiableSet()),
+                store.getRegisteredAt(),
+                store.getUpdatedAt(),
+                store.getDeletedAt()
         );
     }
 
@@ -56,7 +63,10 @@ public class StoreResponse {
                 sellerStore.getStore().getAddress().getLng(),
                 sellerStore.getStore().getLogos().stream()
                         .map(ImageResponse::fromImage)
-                        .collect(Collectors.toUnmodifiableSet())
+                        .collect(Collectors.toUnmodifiableSet()),
+                sellerStore.getStore().getRegisteredAt(),
+                sellerStore.getStore().getUpdatedAt(),
+                sellerStore.getStore().getDeletedAt()
         );
     }
 }

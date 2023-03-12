@@ -1,7 +1,5 @@
 package org.swyg.greensumer.repository.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,8 +20,6 @@ public class VerificationCacheRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final static Duration VERFICATION_CODE_TTL = Duration.ofMinutes(5);
-
-    private final ObjectMapper objectMapper;
     private ValueOperations<String, Object> valueOperations;
 
     @PostConstruct
@@ -62,14 +58,6 @@ public class VerificationCacheRepository {
 
     public String getKey(String email){
         return "VERIFICATION:"+email;
-    }
-
-    private String serializeVerification(Verification verification) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(verification);
-    }
-
-    private Verification deserializeVerification(String value) throws JsonProcessingException {
-        return objectMapper.readValue(value, Verification.class);
     }
 
 }

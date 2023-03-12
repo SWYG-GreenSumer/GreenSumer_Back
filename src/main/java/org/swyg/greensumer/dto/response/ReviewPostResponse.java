@@ -1,8 +1,7 @@
 package org.swyg.greensumer.dto.response;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.swyg.greensumer.dto.ReviewPost;
 
 import java.time.LocalDateTime;
@@ -10,12 +9,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class ReviewPostResponse {
     private Long id;
-    private UserResponse user;
-    private Set<ReviewPostWithProductResponse> products;
+    private String writer;
+    private Set<ProductResponse> products;
     private Set<ImageResponse> images;
     private String title;
     private String content;
@@ -25,23 +23,24 @@ public class ReviewPostResponse {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
+
     public static ReviewPostResponse fromReviewPost(ReviewPost reviewPost) {
-        return new ReviewPostResponse(
-                reviewPost.getId(),
-                UserResponse.fromUser(reviewPost.getUser()),
-                reviewPost.getProducts().stream()
-                        .map(ReviewPostWithProductResponse::fromReviewPostWithProduct)
-                        .collect(Collectors.toUnmodifiableSet()),
-                reviewPost.getImages().stream()
+        return ReviewPostResponse.builder()
+                .id(reviewPost.getId())
+                .writer(reviewPost.getUser().getUsername())
+                .title(reviewPost.getTitle())
+                .content(reviewPost.getContent())
+                .views(reviewPost.getViews())
+                .scope(reviewPost.getScope())
+                .products(reviewPost.getProducts().stream()
+                        .map(ProductResponse::fromProduct)
+                        .collect(Collectors.toUnmodifiableSet()))
+                .images(reviewPost.getImages().stream()
                         .map(ImageResponse::fromImage)
-                        .collect(Collectors.toUnmodifiableSet()),
-                reviewPost.getTitle(),
-                reviewPost.getContent(),
-                reviewPost.getScope(),
-                reviewPost.getViews(),
-                reviewPost.getRegisteredAt(),
-                reviewPost.getUpdatedAt(),
-                reviewPost.getDeletedAt()
-        );
+                        .collect(Collectors.toUnmodifiableSet()))
+                .registeredAt(reviewPost.getRegisteredAt())
+                .updatedAt(reviewPost.getUpdatedAt())
+                .deletedAt(reviewPost.getDeletedAt())
+                .build();
     }
 }
