@@ -18,6 +18,11 @@ public class UserController {
     private final UserService userService;
     private final VerificationService verificationService;
 
+    @GetMapping("/test")
+    public Response<Void> test() {
+        return Response.success();
+    }
+
     @PostMapping("/sign-up")
     public Response<Void> signup(@RequestBody UserSignUpRequest request) {
         userService.signup(request);
@@ -26,6 +31,12 @@ public class UserController {
 
     @PostMapping("/login")
     public Response<TokenInfo> login(@RequestBody UserLoginRequest request) {
+        TokenInfo tokens = userService.login(request);
+        return Response.success(tokens);
+    }
+
+    @PostMapping("/rogin")
+    public Response<TokenInfo> login2(@RequestBody UserLoginRequest request) {
         TokenInfo tokens = userService.login(request);
         return Response.success(tokens);
     }

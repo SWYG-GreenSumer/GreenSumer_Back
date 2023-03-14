@@ -22,6 +22,11 @@ public class ImageController {
 
     private final ImageService imageService;
 
+    @GetMapping("/test")
+    public Response<Void> test() {
+        return Response.success();
+    }
+
     @PostMapping
     public Response<Void> saveImages(@ModelAttribute ImagesCreateRequest request, Authentication authentication) throws IOException {
         imageService.saveImages(request, request.getType(), authentication.getName());

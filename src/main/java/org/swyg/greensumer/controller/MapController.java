@@ -2,10 +2,7 @@ package org.swyg.greensumer.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.swyg.greensumer.dto.ZeroWasteShopResponse;
 import org.swyg.greensumer.dto.request.ZeroWasteShopRequest;
 import org.swyg.greensumer.dto.response.Response;
@@ -20,6 +17,11 @@ import java.util.List;
 public class MapController {
 
     private final ShopRecommendationService shopRecommendationService;
+
+    @GetMapping("/test")
+    public Response<Void> test() {
+        return Response.success();
+    }
 
     @PostMapping
     public Response<List<ZeroWasteShopResponse>> recommend(@RequestBody ZeroWasteShopRequest request){

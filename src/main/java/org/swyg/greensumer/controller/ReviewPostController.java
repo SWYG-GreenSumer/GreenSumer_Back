@@ -24,6 +24,11 @@ public class ReviewPostController {
     private final ReviewPostService reviewPostService;
     private final ReviewCommentService reviewCommentService;
 
+    @GetMapping("/test")
+    public Response<Void> test() {
+        return Response.success();
+    }
+
     @PostMapping
     public Response<Void> create(@RequestBody ReviewPostCreateRequest request, Authentication authentication) {
         reviewPostService.create(request, authentication.getName());
