@@ -3,7 +3,10 @@ package org.swyg.greensumer.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.swyg.greensumer.dto.User;
 import org.swyg.greensumer.dto.request.RequestLevelUp;
 import org.swyg.greensumer.dto.request.UpdateUserRequest;
@@ -18,11 +21,6 @@ import org.swyg.greensumer.service.UserService;
 public class AuthorityController {
 
     private final UserService userService;
-
-    @GetMapping("/test")
-    public Response<Void> test() {
-        return Response.success();
-    }
 
     @PutMapping("/user")
     public Response<UpdateUserResponse> updateUser(@RequestBody UpdateUserRequest request, Authentication authentication) {

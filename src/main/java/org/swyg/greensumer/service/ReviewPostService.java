@@ -18,7 +18,9 @@ import org.swyg.greensumer.repository.review.ReviewPostLikeEntityRepository;
 import org.swyg.greensumer.repository.review.ReviewPostProductEntityRepository;
 import org.swyg.greensumer.repository.review.ViewsCacheRepository;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.swyg.greensumer.service.ImageService.IMAGE_UPLOAD_MAX_COUNT;

@@ -24,11 +24,6 @@ public class EventController {
     private final EventPostService eventPostService;
     private final EventCommentService eventCommentService;
 
-    @GetMapping("/test")
-    public Response<Void> test() {
-        return Response.success();
-    }
-
     @PostMapping
     public Response<Void> createEvent(@RequestBody EventPostCreateRequest request, Authentication authentication){
         eventPostService.create(request, authentication.getName());

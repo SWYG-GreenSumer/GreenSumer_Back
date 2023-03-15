@@ -21,11 +21,6 @@ public class InterviewController {
 
     private final InterviewService interviewService;
 
-    @GetMapping("/test")
-    public Response<Void> test() {
-        return Response.success();
-    }
-
     @PostMapping
     public Response<Void> saveInterview(@RequestBody InterviewCreateRequest request, Authentication authentication) {
         interviewService.saveInterview(request);

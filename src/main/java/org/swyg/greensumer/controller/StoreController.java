@@ -20,11 +20,6 @@ public class StoreController {
 
     private final StoreService storeService;
 
-    @GetMapping("/test")
-    public Response<Void> test() {
-        return Response.success();
-    }
-
     @PostMapping
     public Response<Void> create(@RequestBody StoreCreateRequest request, Authentication authentication) {
         storeService.create(request, authentication.getName());

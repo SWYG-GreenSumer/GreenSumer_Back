@@ -42,7 +42,6 @@ public class SecurityConfig {
                 .authorizeRequests(auth -> auth
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .mvcMatchers("/api/users/**", "/swagger-ui/**", "/v3/**").permitAll()
-                        .mvcMatchers(HttpMethod.GET, "/api/users/test", "/api/reviews/test", "/api/stores/test", "/api/maps/recommend/test", "/api/interviews/test", "/api/images/test", "/api/update/test", "/api/events/test").permitAll()
                         .mvcMatchers("/api/interviews/**").hasRole("ADMIN")
                         .mvcMatchers("/api/stores/**", "api/events").hasRole("SELLER")
                         .antMatchers(HttpMethod.GET, "/api/reviews", "/api/reviews/news", "/api/maps/recommend").permitAll()
