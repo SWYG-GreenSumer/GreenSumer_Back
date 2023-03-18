@@ -28,15 +28,15 @@ public class ReviewPostEntity extends PostEntity {
     private Set<ReviewCommentEntity> comments = new LinkedHashSet<>();
 
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", orphanRemoval = true, cascade = {CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "review", orphanRemoval = true, cascade = {CascadeType.ALL})
     private Set<ReviewImageEntity> images = new LinkedHashSet<>();
 
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<ReviewPostLikeEntity> likes = new LinkedHashSet<>();
 
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = false)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "review", cascade = {CascadeType.ALL}, orphanRemoval = false)
     private Set<ReviewPostProductEntity> postProductsEntities = new LinkedHashSet<>();
 
     private String rating;

@@ -4,6 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.swyg.greensumer.dto.Verification;
@@ -26,6 +30,12 @@ public class VerificationService {
     private final JavaMailSender mailSender;
     private final VerificationCacheRepository verificationCacheRepository;
 
+    @Retryable(
+            value = {RuntimeException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1500)
+    )
+    @Async
     @Transactional
     public void sendMail(String email) {
         try{
@@ -39,10 +49,10 @@ public class VerificationService {
             mailSender.send(message);
 
             verificationCacheRepository.setVerification(Verification.of(email, code));
-            log.info("send Mail to {}", email);
+            log.info("sent Mail to {}", email);
 
         }catch (Exception e){
-            throw new GreenSumerBackApplicationException(ErrorCode.MAIL_SEND_ERROR, String.format("%s cant sent Mail", email));
+            throw new GreenSumerBackApplicationException(ErrorCode.MAIL_SEND_ERROR, String.format("%s can't sent Mail", email));
         }
     }
 
@@ -76,6 +86,11 @@ public class VerificationService {
                 .filter((x) -> (x <= 57 || x >= 65) && (x <= 90 || x >= 97))
                 .limit((long) targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+    }
+
+    @Recover
+    public void recover(RuntimeException e, String email) {
+        log.error("All the retries failed. email: {}, error: {}", email, e.getMessage());
     }
 
 }

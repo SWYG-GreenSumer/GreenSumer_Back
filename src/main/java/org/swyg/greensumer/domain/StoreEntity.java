@@ -37,13 +37,13 @@ public class StoreEntity extends DateTimeEntity {
 
     @Column(name = "hours") private String hours;
 
-    @ToString.Exclude @OneToMany(fetch = FetchType.EAGER, mappedBy = "store", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @ToString.Exclude @OneToMany(fetch = FetchType.LAZY, mappedBy = "store", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<SellerStoreEntity> sellerStores = new LinkedHashSet<>();
 
-    @ToString.Exclude @OneToMany(fetch = FetchType.EAGER, mappedBy = "store", cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @ToString.Exclude @OneToMany(fetch = FetchType.LAZY, mappedBy = "store", cascade = {CascadeType.ALL}, orphanRemoval = true)
     private Set<StoreProductEntity> storeProducts = new LinkedHashSet<>();
 
-    @ToString.Exclude @OneToMany(fetch = FetchType.EAGER, mappedBy = "store", orphanRemoval = true, cascade = {CascadeType.ALL} )
+    @ToString.Exclude @OneToMany(fetch = FetchType.LAZY, mappedBy = "store", orphanRemoval = true, cascade = {CascadeType.ALL} )
     private Set<StoreImageEntity> logos = new LinkedHashSet<>();
 
     public StoreEntity(){}

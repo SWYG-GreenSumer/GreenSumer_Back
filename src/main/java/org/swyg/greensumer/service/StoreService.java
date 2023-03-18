@@ -6,6 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.swyg.greensumer.api.dto.DocumentDto;
+import org.swyg.greensumer.api.dto.KakaoApiResponseDto;
+import org.swyg.greensumer.api.service.KakaoAddressSearchService;
 import org.swyg.greensumer.domain.*;
 import org.swyg.greensumer.domain.constant.StoreType;
 import org.swyg.greensumer.dto.*;
@@ -17,6 +21,7 @@ import org.swyg.greensumer.repository.images.StoreImageEntityRepository;
 import org.swyg.greensumer.repository.store.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -34,15 +39,19 @@ public class StoreService {
     private final UserEntityRepositoryService userEntityRepositoryService;
     private final StoreImageEntityRepository storeImageEntityRepository;
     private final StoreCacheRepository storeCacheRepository;
+    private final KakaoAddressSearchService kakaoAddressSearchService;
 
     @Transactional
     public void create(StoreCreateRequest request, String username) {
-        // 1. 주소 확인(없는 경우 주소 정보를 등록하여 반환)
-        AddressEntity addressEntity = addressService.findAddressEntity(request.getAddress(), request.getRoadname(), request.getLat(), request.getLng());
-
         UserEntity userEntity = userEntityRepositoryService.findByUsernameOrException(username);
 
-        // 2. 가게명과 주소가 동일한 가게가 존재할 경우 중복 에러 발생
+        DocumentDto documentDto = searchAddress(request.getAddress(), request.getRoadname());
+
+        if(Objects.isNull(documentDto))
+            return;
+
+        AddressEntity addressEntity = addressService.findAddressEntity(request.getAddress(), request.getRoadname(), documentDto.getLatitude(), documentDto.getLongitude());
+
         storeEntityRepository.findByNameAndAddress(request.getName(), addressEntity).ifPresent(it -> {
             throw new GreenSumerBackApplicationException(ErrorCode.DUPLICATED_STORE_NAME, String.format("%s is duplicated", request.getName()));
         });
@@ -69,8 +78,13 @@ public class StoreService {
 
         isStoreManager(user.getId(), storeId);
 
+        DocumentDto documentDto = searchAddress(request.getAddress(), request.getRoadname());
+
+        if(Objects.isNull(documentDto))
+            return;
+
         storeEntity.updateStore(request.getType(), request.getDescription(), request.getHours(), request.getPhone(), request.getUrl());
-        storeEntity.updateAddress(addressService.updateAddress(storeEntity.getAddress().getId(), request.getAddress(), request.getRoadname(), request.getLat(), request.getLng()));
+        storeEntity.updateAddress(addressService.updateAddress(storeEntity.getAddress().getId(), request.getAddress(), request.getRoadname(), documentDto.getLatitude(), documentDto.getLongitude()));
 
         if (request.getImages().size() > 0) {
             storeEntity.addImages(storeImageEntityRepository.findAllByIdIn(request.getImages()));
@@ -239,4 +253,17 @@ public class StoreService {
 
         product.addImage(productImageEntityRepository.findById(request.getStart()).orElseThrow(() -> {throw new GreenSumerBackApplicationException(ErrorCode.IMAGE_NOT_FOUND);}) );
     }
+
+    private DocumentDto searchAddress(String address, String roadname) {
+        KakaoApiResponseDto kakaoApiResponseDto = kakaoAddressSearchService.requestAddressSearch(Objects.isNull(address) ? roadname : address);
+
+        if(Objects.isNull(kakaoApiResponseDto) || CollectionUtils.isEmpty(kakaoApiResponseDto.getDocumentList())) {
+            log.error("[StoreService - StoreService Fail] Input address: {}", address);
+
+            return null;
+        }
+
+        return kakaoApiResponseDto.getDocumentList().get(0);
+    }
+
 }

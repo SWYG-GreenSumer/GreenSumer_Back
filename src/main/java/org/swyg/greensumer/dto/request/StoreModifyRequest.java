@@ -21,10 +21,8 @@ public class StoreModifyRequest {
     private String roadname;
     private String url;
     private String phone;
-    private Double lat;
-    private Double lng;
 
-    public static StoreModifyRequest of(String name, String type, String description, String hours, List<Long> images, String address, String roadname, String url, String phone, Double lat, Double lng) {
+    public static StoreModifyRequest of(String name, String type, String description, String hours, List<Long> images, String address, String roadname, String url, String phone) {
         return StoreModifyRequest.builder()
                 .name(name)
                 .type(type)
@@ -35,8 +33,6 @@ public class StoreModifyRequest {
                 .roadname(roadname)
                 .url(url)
                 .phone(phone)
-                .lat(lat)
-                .lng(lng)
                 .build();
     }
 }
